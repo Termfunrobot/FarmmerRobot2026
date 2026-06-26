@@ -1,0 +1,3459 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMR Bot Farm Tycoon: มหาเศรษฐีฟาร์มบอท</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap');
+        
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #1a202c;
+            color: #e2e8f0;
+            overflow-x: hidden;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            user-select: none; 
+        }
+
+        /* -------------------------------------------
+           CUSTOM CURSOR
+        ------------------------------------------- */
+        * {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="%23f97316" stroke="%23ffffff" stroke-width="1.5" stroke-linejoin="round"><polygon points="4 2 4 20 8 15 13 23 16 21 11 14 18 14" /></svg>') 8 4, auto !important;
+        }
+        
+        *:active {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="%23c2410c" stroke="%23ffffff" stroke-width="1.5" stroke-linejoin="round"><polygon points="4 2 4 20 8 15 13 23 16 21 11 14 18 14" /></svg>') 7 3, auto !important;
+        }
+
+        #canvas-container {
+            flex: 1;
+            background-color: #87CEEB; 
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            border: 4px solid #4a5568;
+            position: relative;
+            min-height: 400px;
+            cursor: grab;
+        }
+        
+        #canvas-container:active { cursor: grabbing; }
+        canvas { display: block; width: 100% !important; height: 100% !important; outline: none; }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #2d3748; }
+        ::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #718096; }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        #loading {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.8);
+            display: flex; justify-content: center; align-items: center;
+            color: white; font-size: 1.5rem; z-index: 10; transition: opacity 0.5s;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
+        }
+        .float-text {
+            position: absolute;
+            color: #4ade80;
+            font-weight: bold;
+            font-size: 20px;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+            z-index: 50;
+            text-shadow: 0px 0px 5px #000;
+        }
+    </style>
+</head>
+<body class="py-4">
+
+    <audio id="bgm" loop preload="auto">
+        <source src="https://codeskulptor-demos.commondatastorage.googleapis.com/pang/paza-moduless.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="auth-screen" class="fixed inset-0 bg-gray-900 z-[100] flex flex-col items-center justify-center p-8 overflow-y-auto">
+        <h1 class="text-4xl md:text-6xl font-bold text-yellow-400 mb-8 drop-shadow-lg text-center mt-10">
+            🚜 SMR Bot Farm Tycoon
+            <span class="block text-2xl md:text-4xl text-white mt-4">ระบบเข้าสู่ระบบออนไลน์</span>
+        </h1>
+        
+        <div class="bg-gray-800 border-4 border-green-500 p-8 rounded-3xl shadow-[0_0_25px_rgba(34,197,94,0.4)] max-w-md w-full mb-10">
+            <h2 id="auth-title" class="text-3xl text-white font-bold mb-6 text-center">เข้าสู่ระบบ</h2>
+            
+            <div id="auth-name-container" class="mb-4 hidden">
+                <label class="block text-gray-400 mb-2">ชื่อชาวนา (แสดงในเกม)</label>
+                <div class="flex gap-2">
+                    <input type="text" id="auth-name" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white outline-none focus:border-green-500" placeholder="ตั้งชื่อฟาร์มเมอร์ของคุณ">
+                    <button type="button" onclick="generateRandomName()" class="bg-yellow-600 hover:bg-yellow-500 text-white px-4 rounded-lg font-bold transition whitespace-nowrap shadow-md" title="สุ่มชื่อ">🎲 สุ่ม</button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-400 mb-2">อีเมล</label>
+                <input type="email" id="auth-email" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white outline-none focus:border-green-500" placeholder="farmer@smr.com">
+            </div>
+            
+            <div class="mb-6">
+                <label class="block text-gray-400 mb-2">รหัสผ่าน</label>
+                <input type="password" id="auth-password" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white outline-none focus:border-green-500" placeholder="••••••••">
+            </div>
+
+            <p id="auth-error" class="text-red-500 text-sm mb-4 hidden text-center"></p>
+
+            <button id="btn-login" onclick="handleLogin()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-xl text-xl transition shadow-md mb-3">
+                เข้าสู่ระบบ / โหลดเซฟ
+            </button>
+            <button id="btn-register" onclick="handleRegister()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl text-xl transition shadow-md mb-4 hidden">
+                สมัครสมาชิก
+            </button>
+
+            <div class="text-center">
+                <button onclick="toggleAuthMode()" class="text-yellow-400 hover:text-yellow-300 underline text-sm mt-2">
+                    <span id="auth-switch-text">ยังไม่มีบัญชีใช่ไหม? สมัครสมาชิก</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="user-hud" style="display: none;" class="fixed top-4 right-4 z-[60] flex gap-2">
+        <button onclick="openSettings()" class="bg-gray-600 hover:bg-gray-500 text-white text-sm font-bold py-2 px-4 rounded-full shadow-lg border-2 border-white transition transform hover:scale-105">
+            ⚙️ ตั้งค่า
+        </button>
+        <button onclick="saveGameData()" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-2 px-4 rounded-full shadow-lg border-2 border-white transition transform hover:scale-105">
+            💾 บันทึกเกม
+        </button>
+        <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-500 text-white text-sm font-bold py-2 px-4 rounded-full shadow-lg border-2 border-white transition transform hover:scale-105">
+            🚪 ออกจากระบบ
+        </button>
+    </div>
+
+    <div id="main-menu" style="display: none;" class="fixed inset-0 bg-gray-900 bg-opacity-95 z-50 flex flex-col items-center justify-center p-8 overflow-y-auto">
+        <h1 class="text-5xl md:text-7xl font-bold text-yellow-400 mb-8 drop-shadow-lg text-center mt-10">
+            🚜 SMR Bot Farm Tycoon
+            <span class="block text-3xl md:text-5xl text-white mt-4">มหาเศรษฐีฟาร์มบอท</span>
+        </h1>
+        
+        <div class="text-xl md:text-2xl text-white mb-4 bg-gray-800 px-6 py-3 rounded-2xl border-2 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)] z-10 text-center">
+            ยินดีต้อนรับ, <span id="menu-player-name" class="text-blue-400 font-bold text-2xl md:text-3xl drop-shadow-md">ชาวนามือใหม่</span> 🧑‍🌾
+        </div>
+
+        <div class="text-2xl text-white mb-10 bg-gray-800 px-10 py-6 rounded-3xl border-4 border-green-500 shadow-[0_0_25px_rgba(34,197,94,0.4)] z-10 flex gap-6 items-center">
+            <div>ยอดเงินคงเหลือ: <span id="menu-money" class="text-green-400 font-bold text-4xl">2,500</span> ฿</div>
+        </div>
+
+        <div id="resume-container" class="w-full max-w-2xl mb-6 hidden">
+            <div class="bg-blue-900/50 border border-blue-500 p-8 rounded-2xl text-center shadow-[0_0_20px_rgba(59,130,246,0.4)]">
+                <h3 class="text-3xl font-bold text-white mb-4">⚠️ ฟาร์มกำลังทำงานอยู่!</h3>
+                <p class="text-blue-200 mb-6 text-xl">ระบบฟาร์มและปศุสัตว์ของคุณกำลังดำเนินต่อไป</p>
+                <button onclick="resumeGame()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-2xl font-bold py-4 px-12 rounded-full shadow-lg transition-transform transform hover:scale-105 mb-4">
+                    🚜 กลับไปหน้าฟาร์ม
+                </button>
+            </div>
+        </div>
+        
+        <div class="flex gap-4 flex-wrap justify-center mb-10" id="start-btn-group">
+            <button id="btn-start" onclick="startGame()" class="bg-green-600 hover:bg-green-500 text-white text-3xl font-bold py-4 px-12 rounded-full shadow-[0_10px_30px_rgba(34,197,94,0.5)] transition-all transform hover:scale-105">
+                ▶️ เริ่มเกมส์
+            </button>
+            <button onclick="openHowToPlay()" class="bg-blue-600 hover:bg-blue-500 text-white text-3xl font-bold py-4 px-8 rounded-full shadow-[0_10px_30px_rgba(59,130,246,0.5)] transition-all transform hover:scale-105">
+                📖 วิธีเล่น
+            </button>
+            <button onclick="openLeaderboard()" class="bg-purple-600 hover:bg-purple-500 text-white text-3xl font-bold py-4 px-8 rounded-full shadow-[0_10px_30px_rgba(147,51,234,0.5)] transition-all transform hover:scale-105">
+                🏆 Top 10 มหาเศรษฐี
+            </button>
+        </div>
+    </div>
+
+    <button id="btn-toggle-panel" onclick="togglePanel()" style="display: none;" class="fixed top-4 left-4 z-40 bg-gradient-to-r from-pink-500 to-orange-400 text-white p-3 rounded-full shadow-[0_0_20px_rgba(249,115,22,0.8)] border-2 border-white hover:from-pink-400 hover:to-orange-300 text-xl md:text-2xl transition transform hover:scale-110 font-bold whitespace-nowrap">
+        🎒 คลัง & ร้านค้า
+    </button>
+
+    <div id="merchant-hud" class="fixed top-24 right-4 z-30 bg-gray-900 border-2 border-yellow-500 rounded-xl p-3 shadow-[0_0_15px_rgba(234,179,8,0.4)] text-white flex flex-col items-center cursor-pointer transition transform hover:scale-105" onclick="openMerchantModal()" style="display: none;">
+        <div class="text-3xl mb-1 relative">
+            🤠
+            <span id="merchant-alert" class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse hidden">!</span>
+        </div>
+        <div id="merchant-status" class="text-xs font-bold text-yellow-400">เดินทางมาใน: 02:00</div>
+    </div>
+
+    <div id="top-hud" style="display: none;" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-30 bg-gray-900/90 border border-gray-600 rounded-full px-4 md:px-6 py-2 shadow-[0_5px_15px_rgba(0,0,0,0.5)] flex flex-nowrap justify-start md:justify-center gap-3 md:gap-5 items-center text-xs md:text-sm backdrop-blur-sm transition-all duration-300 max-w-[95vw] overflow-x-auto whitespace-nowrap no-scrollbar">
+        
+        <div id="hud-name-badge" class="text-white drop-shadow-md shrink-0 font-bold bg-blue-800/80 px-2 py-1 rounded-full border border-blue-500 text-[10px] md:text-xs flex items-center gap-1">
+            🧑‍🌾 <span id="hud-player-name" class="max-w-[80px] md:max-w-[120px] truncate">ชาวนา</span>
+        </div>
+
+        <div id="hud-time" class="hidden text-white drop-shadow-md shrink-0 font-bold bg-gray-800/80 px-2 py-1 rounded border border-gray-600 text-[10px] md:text-xs">
+            ☀️ 06:00
+        </div>
+
+        <div id="hud-storage-container" class="text-blue-200 font-bold drop-shadow-md bg-blue-900/60 px-3 py-1 rounded-full border-2 border-blue-500 transition-all duration-300 flex items-center gap-1 shrink-0">
+            📦 <span id="hud-storage">0</span>/<span id="hud-max-storage">500</span>
+        </div>
+
+        <div class="text-green-400 font-bold drop-shadow-md shrink-0">฿ <span id="hud-money">0</span></div>
+        <div class="text-yellow-200 drop-shadow-md shrink-0" title="ข้าวโอ๊ต">🌾 <span id="hud-oat">0</span></div>
+        <div class="text-yellow-400 drop-shadow-md shrink-0" title="ข้าวสาลี">🌾 <span id="hud-wheat">0</span></div>
+        <div class="text-orange-400 drop-shadow-md shrink-0" title="ข้าวบาร์เลย์">🌾 <span id="hud-barley">0</span></div>
+        <div class="text-yellow-500 drop-shadow-md shrink-0" title="ข้าวโพด">🌽 <span id="hud-corn">0</span></div>
+        <div class="text-green-400 drop-shadow-md shrink-0" title="ถั่วเหลือง">🫘 <span id="hud-soybean">0</span></div>
+        <div class="text-white drop-shadow-md shrink-0" title="นมวัว">🥛 <span id="hud-milk">0</span></div>
+        <div class="text-orange-200 drop-shadow-md shrink-0" title="ไข่ไก่">🥚 <span id="hud-egg">0</span></div>
+        
+        <div class="flex gap-1 shrink-0 ml-1">
+            <button id="btn-mute-music" onclick="toggleMusic()" class="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow transition-colors">
+                🎵 เปิดดนตรี
+            </button>
+            <button id="btn-mute-sfx" onclick="toggleSfx()" class="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow transition-colors">
+                🔊 เปิดเสียง
+            </button>
+        </div>
+    </div>
+
+    <div id="ui-panel" style="display: none;" class="fixed top-0 left-0 h-full w-80 bg-gray-800 p-6 pb-8 shadow-[5px_0_25px_rgba(0,0,0,0.7)] border-r border-gray-700 z-50 transform -translate-x-full transition-transform duration-300 flex flex-col overflow-y-auto">
+        <button onclick="togglePanel()" class="absolute top-2 right-4 text-gray-400 hover:text-white text-4xl font-bold z-10">&times;</button>
+        
+        <div class="flex-none">
+            <h2 class="text-xl font-semibold mb-4 text-white border-b border-gray-600 pb-2 pr-8">📦 คลังสะสมผลผลิต</h2>
+            <div class="mb-4">
+                <div class="bg-gray-900 p-3 rounded-lg text-center border border-green-500/30 shadow-inner">
+                    <div class="text-gray-400 text-xs mb-1">ยอดเงินสะสม</div>
+                    <div class="text-2xl font-bold text-green-400">฿ <span id="stat-money">0</span></div>
+                </div>
+            </div>
+
+            <div class="space-y-2 mb-4 pr-1">
+                <div class="flex justify-between items-center bg-gray-700/50 p-2 rounded-lg border-l-4 border-yellow-200 text-sm">
+                    <span>🌾 ข้าวโอ๊ต</span> <span class="font-bold text-yellow-200" id="stat-oat">0</span>
+                </div>
+                <div class="flex justify-between items-center bg-gray-700/50 p-2 rounded-lg border-l-4 border-yellow-400 text-sm">
+                    <span>🌾 ข้าวสาลี</span> <span class="font-bold text-yellow-400" id="stat-wheat">0</span>
+                </div>
+                <div class="flex justify-between items-center bg-gray-700/50 p-2 rounded-lg border-l-4 border-orange-400 text-sm">
+                    <span>🌾 บาร์เลย์</span> <span class="font-bold text-orange-400" id="stat-barley">0</span>
+                </div>
+                <div class="flex justify-between items-center bg-gray-700/50 p-2 rounded-lg border-l-4 border-yellow-500 text-sm">
+                    <span>🌽 ข้าวโพด</span> <span class="font-bold text-yellow-500" id="stat-corn">0</span>
+                </div>
+                <div class="flex justify-between items-center bg-gray-700/50 p-2 rounded-lg border-l-4 border-green-400 text-sm">
+                    <span>🫘 ถั่วเหลือง</span> <span class="font-bold text-green-400" id="stat-soybean">0</span>
+                </div>
+                <div class="flex justify-between items-center bg-gray-700/50 p-2 rounded-lg border-l-4 border-white text-sm">
+                    <span>🥛 นมวัว</span> <span class="font-bold text-white" id="stat-milk">0</span>
+                </div>
+                <div class="flex justify-between items-center bg-gray-700/50 p-2 rounded-lg border-l-4 border-orange-200 text-sm">
+                    <span>🥚 ไข่ไก่</span> <span class="font-bold text-orange-200" id="stat-egg">0</span>
+                </div>
+            </div>
+
+            <h2 class="text-xl font-semibold mb-3 text-white border-b border-gray-600 pb-2">🛒 โชว์รูมหุ่นยนต์ออโต้</h2>
+            <div class="grid grid-cols-1 gap-2 mb-4">
+                <button onclick="buyCar('auto_m1')" class="bg-gray-900 border border-gray-700 hover:border-gray-400 rounded-xl p-2 transition w-full">
+                    <div class="flex justify-between items-center px-1">
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl">🚜</span>
+                            <div class="text-left">
+                                <span class="text-[12px] font-bold text-white block">รุ่นเริ่มต้น</span>
+                                <span class="text-[12px] text-green-400 block font-semibold">10,000 ฿</span>
+                            </div>
+                        </div>
+                        <span class="text-xs bg-gray-700 text-white px-2 py-1 rounded-full border border-gray-500">มี <span id="count-auto_m1" class="text-gray-300 font-bold">0</span></span>
+                    </div>
+                </button>
+                <button onclick="buyCar('auto_m2')" class="bg-gray-900 border border-gray-700 hover:border-yellow-500 rounded-xl p-2 transition w-full">
+                    <div class="flex justify-between items-center px-1">
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl">🤖</span>
+                            <div class="text-left">
+                                <span class="text-[12px] font-bold text-white block">รุ่นมาตรฐาน</span>
+                                <span class="text-[12px] text-green-400 block font-semibold">20,000 ฿</span>
+                            </div>
+                        </div>
+                        <span class="text-xs bg-gray-700 text-white px-2 py-1 rounded-full border border-gray-500">มี <span id="count-auto_m2" class="text-yellow-400 font-bold">0</span></span>
+                    </div>
+                </button>
+                <button onclick="buyCar('auto_m3')" class="bg-gray-900 border border-gray-700 hover:border-green-500 rounded-xl p-2 transition w-full">
+                    <div class="flex justify-between items-center px-1">
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl">🚙</span>
+                            <div class="text-left">
+                                <span class="text-[12px] font-bold text-white block">รุ่นความเร็วสูง</span>
+                                <span class="text-[12px] text-green-400 block font-semibold">30,000 ฿</span>
+                            </div>
+                        </div>
+                        <span class="text-xs bg-gray-700 text-white px-2 py-1 rounded-full border border-gray-500">มี <span id="count-auto_m3" class="text-green-400 font-bold">0</span></span>
+                    </div>
+                </button>
+                <button onclick="buyCar('auto_m4')" class="bg-gray-900 border border-gray-700 hover:border-blue-500 rounded-xl p-2 transition w-full">
+                    <div class="flex justify-between items-center px-1">
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl">🏎️</span>
+                            <div class="text-left">
+                                <span class="text-[12px] font-bold text-white block">รุ่นซุปเปอร์สปีด</span>
+                                <span class="text-[12px] text-green-400 block font-semibold">45,000 ฿</span>
+                            </div>
+                        </div>
+                        <span class="text-xs bg-gray-700 text-white px-2 py-1 rounded-full border border-gray-500">มี <span id="count-auto_m4" class="text-blue-400 font-bold">0</span></span>
+                    </div>
+                </button>
+                <button onclick="buyCar('auto_m5')" class="bg-gray-900 border border-gray-700 hover:border-red-500 rounded-xl p-2 transition w-full">
+                    <div class="flex justify-between items-center px-1">
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl">🚀</span>
+                            <div class="text-left">
+                                <span class="text-[12px] font-bold text-white block">รุ่นอัลตร้าเทอร์โบ</span>
+                                <span class="text-[12px] text-green-400 block font-semibold">60,000 ฿</span>
+                            </div>
+                        </div>
+                        <span class="text-xs bg-gray-700 text-white px-2 py-1 rounded-full border border-gray-500">มี <span id="count-auto_m5" class="text-red-400 font-bold">0</span></span>
+                    </div>
+                </button>
+            </div>
+
+            <h2 class="text-xl font-semibold mb-2 text-white border-b border-gray-600 pb-1 flex justify-between items-center">
+                <span>💰 ตลาดกลาง</span>
+                <span id="market-status-text" class="text-[11px] text-green-400 bg-gray-900 px-2 py-0.5 rounded-full border border-gray-700">(เปิด)</span>
+            </h2>
+            <div class="grid grid-cols-1 gap-1 mb-6 pr-1">
+                <button onclick="openSellModal('oat')" class="market-sell-btn bg-yellow-700 hover:bg-yellow-600 text-white py-1.5 px-3 rounded-lg transition shadow text-xs flex justify-between items-center group">
+                    <span>ขาย ข้าวโอ๊ต</span> <span class="text-green-300">15 ฿</span>
+                </button>
+                <button onclick="openSellModal('wheat')" class="market-sell-btn bg-yellow-600 hover:bg-yellow-500 text-white py-1.5 px-3 rounded-lg transition shadow text-xs flex justify-between items-center group">
+                    <span>ขาย ข้าวสาลี</span> <span class="text-green-200">20 ฿</span>
+                </button>
+                <button onclick="openSellModal('barley')" class="market-sell-btn bg-orange-600 hover:bg-orange-500 text-white py-1.5 px-3 rounded-lg transition shadow text-xs flex justify-between items-center group">
+                    <span>ขาย บาร์เลย์</span> <span class="text-green-200">30 ฿</span>
+                </button>
+                <button onclick="openSellModal('corn')" class="market-sell-btn bg-yellow-500 hover:bg-yellow-400 text-white py-1.5 px-3 rounded-lg transition shadow text-xs flex justify-between items-center group font-semibold text-gray-900">
+                    <span>ขาย ข้าวโพด</span> <span>45 ฿</span>
+                </button>
+                <button onclick="openSellModal('soybean')" class="market-sell-btn bg-green-600 hover:bg-green-500 text-white py-1.5 px-3 rounded-lg transition shadow text-xs flex justify-between items-center group">
+                    <span>ขาย ถั่วเหลือง</span> <span class="text-green-200">60 ฿</span>
+                </button>
+                <button onclick="openSellModal('milk')" class="market-sell-btn bg-gray-300 hover:bg-gray-100 text-gray-900 py-1.5 px-3 rounded-lg transition shadow text-xs flex justify-between items-center group font-bold">
+                    <span>ขาย นมวัว</span> <span class="text-green-700">500 ฿</span>
+                </button>
+                <button onclick="openSellModal('egg')" class="market-sell-btn bg-orange-200 hover:bg-orange-100 text-orange-900 py-1.5 px-3 rounded-lg transition shadow text-xs flex justify-between items-center group font-bold">
+                    <span>ขาย ไข่ไก่</span> <span class="text-green-700">15 ฿</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="mt-auto pt-4 border-t border-gray-600 flex gap-2 shrink-0">
+            <button id="btn-mute-music-panel" onclick="toggleMusic()" class="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 px-1 rounded-lg transition shadow font-bold flex items-center justify-center gap-1 text-xs">
+                🎵 ดนตรี
+            </button>
+            <button id="btn-mute-sfx-panel" onclick="toggleSfx()" class="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 px-1 rounded-lg transition shadow font-bold flex items-center justify-center gap-1 text-xs">
+                🔊 เสียง
+            </button>
+            <button onclick="togglePanel()" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 px-1 rounded-lg transition shadow font-bold flex items-center justify-center gap-1 text-xs">
+                ❌ ปิด
+            </button>
+        </div>
+    </div>
+
+    <div id="canvas-container" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: none; z-index: 10;">
+        <div id="loading">กำลังสร้างพื้นที่ฟาร์ม (3x3)...</div>
+        <div id="labels-container" class="absolute inset-0 pointer-events-none z-20 overflow-hidden"></div>
+    </div>
+
+    <div id="settings-modal" class="fixed inset-0 bg-black/80 flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 z-[100]">
+        <div class="bg-gray-800 border-2 border-gray-500 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform duration-300">
+            <h3 class="text-3xl font-bold text-white mb-6 drop-shadow-md">⚙️ ตั้งค่าระบบ</h3>
+            
+            <div class="space-y-4 text-left">
+                <div class="bg-gray-900 p-3 rounded-xl border border-gray-700">
+                    <label class="block text-gray-300 mb-1 text-sm font-bold">☀️ ความสว่างฟาร์ม: <span id="light-val" class="text-yellow-400">100</span>%</label>
+                    <input type="range" id="light-slider" min="0.5" max="2.0" step="0.1" value="1.2" class="w-full cursor-pointer" oninput="updateSettings()">
+                </div>
+
+                <div class="bg-gray-900 p-3 rounded-xl border border-gray-700">
+                    <label class="block text-gray-300 mb-1 text-sm font-bold">🎵 ระดับเสียงดนตรี: <span id="bgm-val" class="text-blue-400">30</span>%</label>
+                    <input type="range" id="bgm-slider" min="0" max="1" step="0.05" value="0.3" class="w-full cursor-pointer" oninput="updateSettings()">
+                </div>
+
+                <div class="bg-gray-900 p-3 rounded-xl border border-gray-700">
+                    <label class="block text-gray-300 mb-1 text-sm font-bold">🔊 ระดับเสียงเอฟเฟกต์: <span id="sfx-val" class="text-green-400">100</span>%</label>
+                    <input type="range" id="sfx-slider" min="0" max="1" step="0.05" value="1.0" class="w-full cursor-pointer" oninput="updateSettings()">
+                </div>
+
+                <div class="bg-gray-900 p-3 rounded-xl border border-gray-700 flex justify-between items-center">
+                    <span class="text-gray-300 text-sm font-bold">🌱 แสดงเปอร์เซ็นต์เติบโตพืช</span>
+                    <button id="btn-toggle-percentage" onclick="toggleCropPercentage()" class="bg-green-600 hover:bg-green-500 px-4 py-1.5 rounded-lg text-white text-sm font-bold transition shadow">เปิดอยู่</button>
+                </div>
+            </div>
+            
+            <button onclick="closeSettings()" class="mt-6 bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-4 rounded-xl w-full text-lg transition shadow-md">
+                บันทึก & ปิดหน้าต่าง
+            </button>
+        </div>
+    </div>
+
+    <div id="leaderboard-modal" class="fixed inset-0 bg-black/80 flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 z-[100]">
+        <div class="bg-gray-800 border-2 border-purple-500 rounded-2xl p-6 max-w-md w-full text-center shadow-2xl transform scale-95 transition-transform duration-300">
+            <h3 class="text-3xl font-bold text-yellow-400 mb-4 drop-shadow-md">🏆 Top 10 มหาเศรษฐี</h3>
+            <p class="text-gray-300 text-sm mb-4">(จัดอันดับจากยอดเงินสดสะสมในกระเป๋า)</p>
+            
+            <div id="leaderboard-loading" class="text-white my-8 animate-pulse text-lg">กำลังโหลดข้อมูล...</div>
+            
+            <div id="leaderboard-list" class="space-y-2 mb-6 max-h-[50vh] overflow-y-auto pr-2 text-left">
+                </div>
+            
+            <button onclick="closeLeaderboard()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 rounded-xl w-full text-lg transition shadow-md">
+                ปิดหน้าต่าง
+            </button>
+        </div>
+    </div>
+
+    <div id="merchant-modal" class="fixed inset-0 bg-black/80 flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 z-[100]">
+        <div class="bg-gray-800 border-2 border-yellow-500 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform duration-300">
+            <div class="text-6xl mb-2">🤠</div>
+            <h3 class="text-2xl font-bold text-yellow-400 mb-1">ออเดอร์พิเศษจากพ่อค้า!</h3>
+            <p class="text-gray-300 mb-4 text-sm">ราคาดีกว่าตลาด 20% มีเท่าไหร่ก็ขายได้เลย!</p>
+            
+            <div class="bg-gray-900 border border-gray-700 p-4 rounded-xl mb-5 text-left">
+                <div class="flex justify-between items-center mb-2 text-sm border-b border-gray-700 pb-2">
+                    <span class="text-gray-400">สิ่งที่ต้องการ:</span>
+                    <span class="font-bold text-white text-lg" id="merchant-order-crop">🌾 ข้าวสาลี</span>
+                </div>
+                <div class="flex justify-between items-center mb-2 text-sm border-b border-gray-700 pb-2">
+                    <span class="text-gray-400">จำนวนสูงสุดที่รับซื้อ:</span>
+                    <span class="font-bold text-yellow-400"><span id="merchant-order-amount">0</span> หน่วย</span>
+                </div>
+                <div class="flex justify-between items-center mb-2 text-sm border-b border-gray-700 pb-2">
+                    <span class="text-gray-400">ของที่คุณมี:</span>
+                    <span class="font-bold text-blue-400"><span id="merchant-player-has">0</span> หน่วย</span>
+                </div>
+                <div class="flex justify-between items-center mt-3 text-sm">
+                    <span class="text-gray-400">ยอดเงินที่จะได้รับ:</span>
+                    <span class="font-bold text-green-400 text-2xl"><span id="merchant-order-price">0</span> ฿</span>
+                </div>
+            </div>
+            
+            <div class="flex gap-2">
+                <button id="btn-fulfill-order" onclick="fulfillOrder()" class="bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-xl w-full text-md transition shadow-md">
+                    ✅ ขายผลผลิต
+                </button>
+                <button onclick="closeMerchantModal()" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-4 rounded-xl w-1/3 text-sm transition shadow-md">ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="how-to-play-modal" class="fixed inset-0 bg-black/80 flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 z-[100]">
+        <div class="bg-gray-800 border border-gray-600 rounded-2xl p-6 max-w-md w-full text-left shadow-2xl transform scale-95 transition-transform duration-300">
+            <h3 class="text-3xl font-bold text-yellow-400 mb-4 text-center">📖 คำแนะนำการเล่น</h3>
+            <ul class="text-white space-y-3 mb-6 text-sm">
+                <li class="flex gap-2"><span>1.</span> <span><b>เพาะปลูก:</b> ส่งหุ่นยนต์ไปปลูกและเก็บเกี่ยวพืชในแปลงด้านบน</span></li>
+                <li class="flex gap-2"><span>2.</span> <span><b>ปศุสัตว์:</b> แปลงด้านล่าง 3 แปลงใช้สำหรับเลี้ยงสัตว์ ซื้อไก่หรือวัวได้ <b>คลิกที่โรงเรือนเพื่อซื้อสัตว์</b> สัตว์จะดรอปผลผลิตบนพื้น ให้ <b>คลิกที่พื้นแปลงเพื่อเก็บของรวบยอด</b> ทีเดียว (ไก่มีโอกาสสุ่มได้ไข่ทองคำ 10,000 ฿ ด้วยนะ!)</span></li>
+                <li class="flex gap-2"><span>3.</span> <span><b>ซูมจอ:</b> ใช้ลูกกลิ้งเมาส์ (Mouse Wheel) เพื่อซูมเข้าและซูมออกดูฟาร์มได้ชัดเจนขึ้น!</span></li>
+                <li class="flex gap-2"><span>4.</span> <span><b>ขยายอาณาจักร:</b> แปลงที่มีรั้วสีเทา 🔒 คือแปลงที่ยังไม่ได้ซื้อ คลิกเพื่อใช้เงินปลดล็อคกรรมสิทธิ์</span></li>
+                <li class="flex gap-2"><span>5.</span> <span><b>ตลาดกลาง:</b> ขายผลผลิตได้ไม่มีขีดจำกัด และตลาดจะพัก 5 นาทีหลังการขาย</span></li>
+                <li class="flex gap-2 text-yellow-300"><span>⭐</span> <span><b>พ่อค้ารับซื้อ:</b> พ่อค้าจะขับรถมารับซื้อผลผลิตทุกๆ 2 นาที ให้ราคาดี 120%!</span></li>
+            </ul>
+            <button onclick="closeHowToPlay()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl w-full text-lg transition shadow-md">เข้าใจแล้ว ลุยเลย!</button>
+        </div>
+    </div>
+
+    <div id="car-select-modal" class="fixed inset-0 bg-black/80 flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 z-[100]">
+        <div class="bg-gray-800 border border-gray-600 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform duration-300">
+            <h3 id="car-select-title" class="text-2xl font-bold text-white mb-1">🎯 จัดสรรหุ่นยนต์ออโต้</h3>
+            <p id="car-select-subtitle" class="text-yellow-400 font-bold mb-2 text-lg">แปลงที่ X</p>
+            
+            <div id="car-select-custom-ui" class="mb-4"></div>
+
+            <div id="car-select-options" class="space-y-2 max-h-[30vh] overflow-y-auto pr-1"></div>
+            
+            <div class="flex gap-2 mt-5">
+                <button onclick="unassignPlotCars()" class="bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 px-4 rounded-xl flex-1 text-sm transition shadow-md">ถอนหุ่นยนต์กลับ</button>
+                <button onclick="closeCarSelect()" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2.5 px-4 rounded-xl flex-1 text-sm transition shadow-md">ยกเลิก</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="animal-shop-modal" class="fixed inset-0 bg-black/80 flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 z-[100]">
+        <div class="bg-gray-800 border border-gray-600 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform duration-300">
+            <h3 class="text-2xl font-bold text-white mb-1">🐄 ซื้อสัตว์เลี้ยงเข้าฟาร์ม</h3>
+            <p id="animal-plot-subtitle" class="text-green-400 font-bold mb-4 text-lg">แปลงปศุสัตว์ที่ X</p>
+            
+            <div id="animal-status-ui" class="mb-4 text-left text-sm bg-gray-900 p-3 rounded-xl border border-gray-700"></div>
+
+            <div class="space-y-2">
+                <button onclick="buyAnimal('chicken')" class="w-full bg-orange-700 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-xl text-md transition shadow-md flex justify-between items-center border border-orange-500">
+                    <span>🐔 ซื้อ ไก่ไข่</span>
+                    <span class="text-orange-200">100 ฿</span>
+                </button>
+                <button onclick="buyAnimal('cow')" class="w-full bg-gray-200 hover:bg-white text-gray-900 font-bold py-3 px-4 rounded-xl text-md transition shadow-md flex justify-between items-center border border-gray-400">
+                    <span>🐮 ซื้อ วัวนม</span>
+                    <span class="text-green-700">1,000 ฿</span>
+                </button>
+            </div>
+            
+            <div class="mt-5">
+                <button onclick="closeAnimalShop()" class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition shadow-md">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="buy-plot-modal" class="fixed inset-0 bg-black/80 flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 z-[100]">
+        <div class="bg-gray-800 border border-gray-600 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform duration-300">
+            <div class="text-5xl mb-2">🔒</div>
+            <h3 class="text-2xl font-bold text-white mb-1">ซื้อพื้นที่แปลงใหม่</h3>
+            <p id="buy-plot-subtitle" class="text-yellow-400 font-bold mb-4 text-lg">แปลงฟาร์ม</p>
+
+            <div class="bg-gray-900 border border-gray-700 p-4 rounded-xl mb-5 text-left flex justify-between items-center">
+                <span class="text-gray-400">ราคาซื้อที่ดิน:</span>
+                <span class="font-bold text-green-400 text-xl"><span id="buy-plot-price">500,000</span> ฿</span>
+            </div>
+            
+            <div class="flex gap-2 mt-5">
+                <button id="btn-confirm-buy-plot" onclick="confirmBuyPlot()" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2.5 px-4 rounded-xl flex-1 text-sm transition shadow-md">✅ ซื้อแปลงนี้</button>
+                <button onclick="closeBuyPlotModal()" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2.5 px-4 rounded-xl flex-1 text-sm transition shadow-md">ยกเลิก</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="sell-modal" class="fixed inset-0 bg-black/80 flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 z-[100]">
+        <div class="bg-gray-800 border border-gray-600 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform duration-300">
+            <div id="sell-icon" class="text-5xl mb-2">🌾</div>
+            <h3 class="text-2xl font-bold text-white mb-1">ขายผลผลิต</h3>
+            <p id="sell-crop-name" class="text-yellow-400 font-bold mb-4 text-lg">ข้าวโอ๊ต</p>
+
+            <div class="bg-gray-900 border border-gray-700 p-4 rounded-xl mb-5 text-left">
+                <div class="flex justify-between items-center mb-2 text-sm border-b border-gray-700 pb-2">
+                    <span class="text-gray-400">ราคาต่อหน่วย:</span>
+                    <span class="font-bold text-green-400"><span id="sell-unit-price">5</span> ฿</span>
+                </div>
+                <div class="flex justify-between items-center mb-2 text-sm border-b border-gray-700 pb-2">
+                    <span class="text-gray-400">มีอยู่ในคลังทั้งหมด:</span>
+                    <span class="font-bold text-yellow-400"><span id="sell-max-amount">0</span> หน่วย</span>
+                </div>
+                <div class="mt-3">
+                    <label class="text-sm text-gray-400 block mb-1">ระบุจำนวนที่ต้องการขาย:</label>
+                    <input type="number" id="sell-amount-input" class="w-full bg-gray-800 text-white border border-gray-600 rounded-lg p-2 text-center text-lg font-bold outline-none focus:border-green-500 transition-colors" min="1" value="1" oninput="updateSellTotal()">
+                </div>
+                <div class="flex justify-between items-center mt-4 text-sm bg-gray-800 p-2 rounded-lg border border-gray-700">
+                    <span class="text-gray-400">ยอดรวมที่จะได้รับ:</span>
+                    <span class="font-bold text-green-400 text-lg"><span id="sell-total-price">0</span> ฿</span>
+                </div>
+            </div>
+            
+            <div class="flex gap-2 mt-5">
+                <button id="btn-confirm-sell" onclick="confirmSell()" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2.5 px-4 rounded-xl flex-1 text-sm transition shadow-md">💰 ขายรับเงิน</button>
+                <button onclick="closeSellModal()" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2.5 px-4 rounded-xl flex-1 text-sm transition shadow-md">ยกเลิก</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="silo-modal" class="fixed inset-0 bg-black/80 flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 z-[100]">
+        <div class="bg-gray-800 border border-gray-600 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform duration-300">
+            <div class="text-5xl mb-2">🏡</div>
+            <h3 class="text-2xl font-bold text-white mb-1">ศูนย์บัญชาการ & โรงนา</h3>
+            <p class="text-gray-300 mb-4 text-sm">ซื้อที่เก็บเพิ่มเพื่อรองรับผลผลิตที่มากขึ้น!</p>
+            
+            <div class="bg-gray-900 border border-gray-700 p-4 rounded-xl mb-5 text-left">
+                <div class="flex justify-between items-center mb-2 text-sm border-b border-gray-700 pb-2">
+                    <span class="text-gray-400">อาคารโรงนาที่มี:</span>
+                    <span class="font-bold text-yellow-400"><span id="silo-count-display">1</span> / 10 หลัง</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-400">ความจุผลผลิตสูงสุด:</span>
+                    <span class="font-bold text-green-400"><span id="silo-capacity-display">500</span> หน่วย</span>
+                </div>
+            </div>
+            
+            <button id="btn-buy-silo" onclick="buySilo()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl w-full text-md transition shadow-md mb-2 flex justify-between items-center">
+                <span>➕ ซื้อที่เก็บเพิ่ม 1 หลัง</span>
+                <span class="text-yellow-200">5,000 ฿</span>
+            </button>
+            
+            <button id="btn-buy-dog" onclick="buyDog()" class="bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 px-4 rounded-xl w-full text-md transition shadow-md mb-4 flex justify-between items-center">
+                <span>🐕 ซื้อน้องหมาเฝ้าฟาร์ม</span>
+                <span class="text-yellow-200">500 ฿</span>
+            </button>
+            
+            <button onclick="closeSiloModal()" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2.5 px-4 rounded-xl w-full text-sm transition shadow-md">ปิดหน้าต่าง</button>
+        </div>
+    </div>
+    
+    <div id="dog-modal" class="fixed inset-0 bg-black/80 flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 z-[100]">
+        <div class="bg-orange-900 border border-orange-600 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform duration-300">
+            <div class="text-5xl mb-2">🐕</div>
+            <h3 class="text-2xl font-bold text-white mb-1">น้องหมาเฝ้าฟาร์ม</h3>
+            <p class="text-orange-200 mb-4 text-sm">เล่นกับน้อง หรือให้อาหารน้องสิ!</p>
+            
+            <div class="bg-orange-950 border border-orange-800 p-4 rounded-xl mb-5 text-left">
+                <div class="flex justify-between items-center mb-2 text-sm border-b border-orange-800 pb-2">
+                    <span class="text-gray-300">ความสุข:</span>
+                    <span class="font-bold text-pink-400"><span id="dog-happy">100</span>%</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-300">ความอิ่ม (หิว):</span>
+                    <span class="font-bold text-green-400"><span id="dog-hunger">100</span>%</span>
+                </div>
+            </div>
+            
+            <button onclick="playWithDog()" class="bg-pink-600 hover:bg-pink-500 text-white font-bold py-2.5 px-4 rounded-xl w-full text-md transition shadow-md mb-2">
+                🎾 เล่นกับน้อง
+            </button>
+            <button onclick="feedDog()" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2.5 px-4 rounded-xl w-full text-md transition shadow-md mb-4">
+                🍖 ให้อาหาร (50 ฿)
+            </button>
+            
+            <button onclick="closeDogModal()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2.5 px-4 rounded-xl w-full text-sm transition shadow-md">ปิดหน้าต่าง</button>
+        </div>
+    </div>
+
+    <div id="message-modal" class="fixed top-20 left-1/2 transform -translate-x-1/2 opacity-0 pointer-events-none transition-all duration-300 z-[100] w-[90%] max-w-sm">
+        <div class="bg-gray-800/95 backdrop-blur-md border-2 border-green-500 rounded-2xl p-5 text-center shadow-[0_15px_30px_rgba(0,0,0,0.6)] transform scale-95 transition-transform duration-300" id="message-content">
+            <div id="message-icon" class="text-4xl mb-2">💰</div>
+            <h3 id="message-title" class="text-xl font-bold text-white mb-1">สำเร็จ!</h3>
+            <p id="message-text" class="text-gray-300 text-sm">ข้อความจำลอง</p>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // FIREBASE INITIALIZATION & AUTH SYSTEM
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCvTVKDFwNdGHNBuyjZYqcq8wAXdU9UFpw",
+            authDomain: "game22-59ca8.firebaseapp.com",
+            databaseURL: "https://game22-59ca8-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "game22-59ca8",
+            storageBucket: "game22-59ca8.firebasestorage.app",
+            messagingSenderId: "865859959580",
+            appId: "1:865859959580:web:6ec87b1623e926fe7198d9",
+            measurementId: "G-E8GFE0FJQH"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let isLoginMode = true;
+        let currentUser = null;
+        let playerName = "ชาวนามือใหม่"; 
+
+        function generateRandomName() {
+            try {
+                if(audioCtx && !isSfxMuted) sfx.click();
+            } catch(e){}
+            
+            const adjectives = ["ซิ่ง", "รวย", "ขยัน", "สายชิล", "มหาเศรษฐี", "สุดหล่อ", "อินดี้", "นำโชค", "เทพ", "สุดปัง", "สายฮา"];
+            const nouns = ["ชาวนา", "เถ้าแก่", "ฟาร์มเมอร์", "ผู้ใหญ่บ้าน", "ลูกพี่", "กำนัน", "เสี่ย", "นักปลูก", "บอทฟาร์ม"];
+            
+            const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+            const noun = nouns[Math.floor(Math.random() * nouns.length)];
+            const num = Math.floor(Math.random() * 999) + 1;
+            
+            document.getElementById('auth-name').value = `${noun}${adj}_${num}`;
+        }
+
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('auth-title').innerText = isLoginMode ? "เข้าสู่ระบบ" : "สมัครสมาชิกฟาร์มใหม่";
+            document.getElementById('btn-login').classList.toggle('hidden', !isLoginMode);
+            document.getElementById('btn-register').classList.toggle('hidden', isLoginMode);
+            document.getElementById('auth-switch-text').innerText = isLoginMode ? "ยังไม่มีบัญชีใช่ไหม? สมัครสมาชิก" : "มีบัญชีอยู่แล้ว? เข้าสู่ระบบ";
+            document.getElementById('auth-error').classList.add('hidden');
+            
+            document.getElementById('auth-name-container').classList.toggle('hidden', isLoginMode);
+            
+            if(!isLoginMode && !document.getElementById('auth-name').value) {
+                generateRandomName();
+            }
+        }
+
+        function handleRegister() {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            let nameInput = document.getElementById('auth-name').value.trim();
+            const errorEl = document.getElementById('auth-error');
+
+            if(!email || !password) {
+                errorEl.innerText = "กรุณากรอกข้อมูลให้ครบถ้วน";
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            if(!nameInput) {
+                nameInput = "ชาวนานิรนาม_" + Math.floor(Math.random() * 1000);
+            }
+
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    playerName = nameInput; 
+                    
+                    userCredential.user.updateProfile({
+                        displayName: nameInput
+                    });
+
+                    saveGameData(userCredential.user.uid);
+                })
+                .catch((error) => {
+                    errorEl.innerText = "เกิดข้อผิดพลาด: " + error.message;
+                    errorEl.classList.remove('hidden');
+                });
+        }
+
+        function handleLogin() {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const errorEl = document.getElementById('auth-error');
+
+            auth.signInWithEmailAndPassword(email, password)
+                .catch((error) => {
+                    errorEl.innerText = "อีเมลหรือรหัสผ่านไม่ถูกต้อง";
+                    errorEl.classList.remove('hidden');
+                });
+        }
+
+        function handleLogout() {
+            const savePromise = saveGameData() || Promise.resolve(); 
+            
+            savePromise.then(() => {
+                auth.signOut().then(() => {
+                    location.reload(); 
+                });
+            }).catch(err => {
+                console.error("Logout save error", err);
+                auth.signOut().then(() => location.reload());
+            });
+        }
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('auth-screen').style.display = 'none';
+                
+                const loadingEl = document.getElementById('loading');
+                loadingEl.style.display = 'flex';
+                loadingEl.style.opacity = '1';
+                loadingEl.innerText = 'กำลังโหลดข้อมูลฟาร์มส่วนตัวของคุณ...';
+                
+                loadGameData(user.uid).then(() => {
+                    loadingEl.style.display = 'none';
+                    document.getElementById('main-menu').style.display = 'flex';
+                    document.getElementById('user-hud').style.display = 'flex';
+                });
+            } else {
+                currentUser = null;
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('main-menu').style.display = 'none';
+                document.getElementById('user-hud').style.display = 'none';
+            }
+        });
+
+        // ==========================================
+        // CLOUD SAVE SYSTEM (FIRESTORE)
+        // ==========================================
+        let boardLogicalSaved = null;
+        let growthLogicalSaved = null;
+        let savedAnimals = null;
+
+        function saveGameData(forceUid = null) {
+            const uid = forceUid || (currentUser ? currentUser.uid : null);
+            if (!uid) {
+                if(!forceUid) showMessage('แจ้งเตือน', 'ไม่พบข้อมูลบัญชี กรุณาล็อกอินใหม่', '⚠️');
+                return Promise.resolve(); 
+            }
+
+            // คำนวณทรัพย์สินรวม (เงิน + มูลค่าของทุกอย่างในคลัง)
+            let currentTotalAssets = inventory.money || 0;
+            currentTotalAssets += (inventory.oat || 0) * PRICES.oat;
+            currentTotalAssets += (inventory.wheat || 0) * PRICES.wheat;
+            currentTotalAssets += (inventory.barley || 0) * PRICES.barley;
+            currentTotalAssets += (inventory.corn || 0) * PRICES.corn;
+            currentTotalAssets += (inventory.soybean || 0) * PRICES.soybean;
+            currentTotalAssets += (inventory.milk || 0) * PRICES.milk;
+            currentTotalAssets += (inventory.egg || 0) * PRICES.egg;
+
+            let animalsToSave = farmAnimals ? farmAnimals.map(a => ({ type: a.type, plotIndex: a.plotIndex })) : [];
+
+            const saveData = {
+                playerName: playerName, 
+                inventory: inventory || {},
+                totalAssets: currentTotalAssets,
+                ownedPlots: ownedPlots || [],
+                siloCount: siloCount || 1,
+                hasDog: hasDog || false,
+                ownedCars: ownedCars || {},
+                farmAnimals: animalsToSave,
+                ...(isFarmActive && boardLogical && boardLogical.length > 0 ? { 
+                    boardLogicalStr: JSON.stringify(boardLogical), 
+                    growthLogicalStr: JSON.stringify(growthLogical) 
+                } : {}),
+                lastSaved: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            return db.collection("farmSaves").doc(uid).set(saveData, { merge: true })
+                .then(() => {
+                    if(!forceUid) showMessage('บันทึกสำเร็จ!', 'ข้อมูลฟาร์มของคุณถูกบันทึกขึ้น Cloud แล้ว', '💾', 3000);
+                    console.log("บันทึกข้อมูลสำเร็จ!");
+                })
+                .catch((error) => {
+                    console.error("Error saving document: ", error);
+                    if(!forceUid) showMessage('เกิดข้อผิดพลาด!', 'ไม่สามารถบันทึกข้อมูลได้: ' + error.message, '❌');
+                });
+        }
+
+        function loadGameData(uid) {
+            return db.collection("farmSaves").doc(uid).get().then((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    
+                    if(data.playerName) {
+                        playerName = data.playerName;
+                    } else if (currentUser && currentUser.displayName) {
+                        playerName = currentUser.displayName;
+                    } else {
+                        playerName = "ชาวนามือใหม่";
+                    }
+
+                    if(data.inventory) inventory = data.inventory;
+                    if(data.ownedPlots) ownedPlots = data.ownedPlots;
+                    if(data.siloCount) siloCount = data.siloCount;
+                    if(data.hasDog !== undefined) hasDog = data.hasDog;
+                    if(data.ownedCars) ownedCars = data.ownedCars;
+                    
+                    if(data.boardLogicalStr) boardLogicalSaved = JSON.parse(data.boardLogicalStr);
+                    else if(data.boardLogical) boardLogicalSaved = data.boardLogical; 
+
+                    if(data.growthLogicalStr) growthLogicalSaved = JSON.parse(data.growthLogicalStr);
+                    else if(data.growthLogical) growthLogicalSaved = data.growthLogical; 
+
+                    if(data.farmAnimals) savedAnimals = data.farmAnimals;
+
+                    document.getElementById('btn-start').innerHTML = '▶️ เข้าเล่นต่อ';
+
+                    initMenu(); 
+                    console.log("Load Save Complete!");
+                } else {
+                    console.log("No save found. Starting new game.");
+                    
+                    if (currentUser && currentUser.displayName) {
+                        playerName = currentUser.displayName;
+                    }
+                    
+                    document.getElementById('btn-start').innerHTML = '▶️ เริ่มเกมส์ใหม่';
+                    initMenu();
+                }
+            }).catch((error) => {
+                console.log("Error getting document:", error);
+            });
+        }
+
+        setInterval(() => {
+            if (currentUser && isFarmActive) {
+                saveGameData();
+            }
+        }, 180000); // Auto save every 3 minutes
+
+        // ==========================================
+        // SETTINGS SYSTEM (NEW)
+        // ==========================================
+        let isShowCropPercentage = true;
+        let globalSfxVolume = 1.0;
+
+        function openSettings() {
+            sfx.click();
+            const modal = document.getElementById('settings-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-95', 'scale-100');
+        }
+
+        function closeSettings() {
+            sfx.click();
+            const modal = document.getElementById('settings-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-100', 'scale-95');
+        }
+
+        function updateSettings() {
+            // ปรับแสง
+            const lightVal = parseFloat(document.getElementById('light-slider').value);
+            document.getElementById('light-val').innerText = Math.round((lightVal / 1.2) * 100);
+            if (ambientLight) ambientLight.intensity = lightVal;
+            if (dirLight) dirLight.intensity = lightVal;
+
+            // ปรับเสียงเพลง BGM
+            const bgmVal = parseFloat(document.getElementById('bgm-slider').value);
+            document.getElementById('bgm-val').innerText = Math.round(bgmVal * 100);
+            const bgm = document.getElementById('bgm');
+            if (bgm) bgm.volume = bgmVal;
+            
+            // ปรับเสียง SFX (ตัวคูณ)
+            globalSfxVolume = parseFloat(document.getElementById('sfx-slider').value);
+            document.getElementById('sfx-val').innerText = Math.round(globalSfxVolume * 100);
+        }
+
+        function toggleCropPercentage() {
+            sfx.click();
+            isShowCropPercentage = !isShowCropPercentage;
+            const btn = document.getElementById('btn-toggle-percentage');
+            if (isShowCropPercentage) {
+                btn.innerText = 'เปิดอยู่';
+                btn.className = 'bg-green-600 hover:bg-green-500 px-4 py-1.5 rounded-lg text-white text-sm font-bold transition shadow';
+            } else {
+                btn.innerText = 'ปิดการแสดงผล';
+                btn.className = 'bg-red-600 hover:bg-red-500 px-4 py-1.5 rounded-lg text-white text-sm font-bold transition shadow';
+                
+                // ซ่อนป้ายเปอร์เซ็นต์ทั้งหมดทันทีที่กดปิด
+                for(let z=0; z<ROWS; z++){
+                    for(let x=0; x<COLS; x++){
+                        let label = labelGrid[z]?.[x];
+                        if(label && label._currentDisplay !== 'none') {
+                            label.style.display = 'none';
+                            label._currentDisplay = 'none';
+                        }
+                    }
+                }
+            }
+        }
+
+        // ==========================================
+        // AUDIO SYSTEM (Web Audio API & BGM)
+        // ==========================================
+        let audioCtx;
+        let isMusicMuted = false;
+        let isSfxMuted = false;
+
+        function initAudio() {
+            try {
+                if(!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if(audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const bgm = document.getElementById('bgm');
+                // อิงตาม slider ตั้งค่า
+                bgm.volume = parseFloat(document.getElementById('bgm-slider').value);
+                if(!isMusicMuted) {
+                    bgm.play().catch(e => {
+                        document.body.addEventListener('click', function playOnFirstClick() {
+                            if(!isMusicMuted) bgm.play();
+                            document.body.removeEventListener('click', playOnFirstClick);
+                        }, { once: true });
+                    });
+                }
+            } catch (e) {}
+        }
+
+        function toggleMusic() {
+            isMusicMuted = !isMusicMuted;
+            const bgm = document.getElementById('bgm');
+            const btnHud = document.getElementById('btn-mute-music');
+            const btnPanel = document.getElementById('btn-mute-music-panel');
+            
+            if(isMusicMuted) {
+                bgm.pause();
+                if(btnHud) { btnHud.innerHTML = '🎵 ปิดดนตรี'; btnHud.classList.replace('bg-green-600', 'bg-gray-600'); }
+                if(btnPanel) { btnPanel.innerHTML = '🎵 ดนตรี'; btnPanel.classList.replace('bg-green-600', 'bg-gray-600'); }
+            } else {
+                bgm.play();
+                if(btnHud) { btnHud.innerHTML = '🎵 เปิดดนตรี'; btnHud.classList.replace('bg-gray-600', 'bg-green-600'); }
+                if(btnPanel) { btnPanel.innerHTML = '🎵 ดนตรี'; btnPanel.classList.replace('bg-gray-600', 'bg-green-600'); }
+            }
+            sfx.click();
+        }
+
+        function toggleSfx() {
+            isSfxMuted = !isSfxMuted;
+            const btnHud = document.getElementById('btn-mute-sfx');
+            const btnPanel = document.getElementById('btn-mute-sfx-panel');
+            
+            if(isSfxMuted) {
+                if(btnHud) { btnHud.innerHTML = '🔇 ปิดเสียง'; btnHud.classList.replace('bg-green-600', 'bg-gray-600'); }
+                if(btnPanel) { btnPanel.innerHTML = '🔇 เสียง'; btnPanel.classList.replace('bg-green-600', 'bg-gray-600'); }
+            } else {
+                if(btnHud) { btnHud.innerHTML = '🔊 เปิดเสียง'; btnHud.classList.replace('bg-gray-600', 'bg-green-600'); }
+                if(btnPanel) { btnPanel.innerHTML = '🔊 เสียง'; btnPanel.classList.replace('bg-gray-600', 'bg-green-600'); }
+            }
+            sfx.click();
+        }
+
+        function playTone(freq, type, duration, vol=0.1) {
+            try {
+                if(!audioCtx || isSfxMuted || audioCtx.state === 'suspended' || globalSfxVolume === 0) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                // นำความดังจาก settings มาคูณ
+                let finalVol = vol * globalSfxVolume;
+                gain.gain.setValueAtTime(finalVol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        const sfx = {
+            click: () => playTone(600, 'sine', 0.1),
+            buy: () => { playTone(800, 'sine', 0.1); setTimeout(()=>playTone(1200, 'sine', 0.2), 100); },
+            error: () => playTone(150, 'sawtooth', 0.3, 0.2),
+            harvest: () => playTone(300, 'square', 0.1, 0.02),
+            dog: () => { playTone(500, 'square', 0.1, 0.05); setTimeout(()=>playTone(600, 'square', 0.1, 0.05), 100); },
+            alert: () => { playTone(400, 'square', 0.2); setTimeout(()=>playTone(600, 'square', 0.2), 200); },
+            collect: () => playTone(900, 'sine', 0.1, 0.05) 
+        };
+
+        // ==========================================
+        // GAME LOGIC & STATE
+        // ==========================================
+        const PLOT_SIZE = 15;  
+        const PLOTS_X = 3;     
+        const PLOTS_Z = 3;     
+        const GAP = 2;         
+
+        const COLS = (PLOTS_X * PLOT_SIZE) + ((PLOTS_X - 1) * GAP); 
+        const ROWS = (PLOTS_Z * PLOT_SIZE) + ((PLOTS_Z - 1) * GAP); 
+
+        let siloCount = 1;
+        const MAX_SILOS = 10;
+        const SILO_CAPACITY = 500; 
+        const SILO_COST = 5000; 
+        let isStorageFullNotified = false; 
+
+        let ownedPlots = [true, false, false, false, true, false, false, true, false]; 
+        
+        const PLOT_PRICES = {
+            1: 500000, 2: 600000, 3: 800000, 5: 1000000,
+            6: 50000, 7: 50000, 8: 50000 
+        };
+
+        const PRICES = { oat: 15, wheat: 20, barley: 30, corn: 45, soybean: 60, milk: 500, egg: 15 };
+        const SEED_COSTS = { oat: 500, wheat: 800, barley: 1200, corn: 2000, soybean: 3000 };
+        
+        let inventory = { money: 2500, oat: 0, wheat: 0, barley: 0, corn: 0, soybean: 0, milk: 0, egg: 0 };
+        
+        let isInMenu = true;
+        let isFarmActive = false; 
+        let isPaused = false;     
+        let isPanelOpen = false;
+        
+        const CAR_TYPES = {
+            auto_m1: { id: 'auto_m1', name: 'รุ่นเริ่มต้น', cost: 10000, speed: 1.2, color: 0x9ca3af, icon: '🚜' },
+            auto_m2: { id: 'auto_m2', name: 'รุ่นมาตรฐาน', cost: 20000, speed: 1.8, color: 0xeab308, icon: '🤖' },
+            auto_m3: { id: 'auto_m3', name: 'รุ่นความเร็วสูง', cost: 30000, speed: 2.5, color: 0x22c55e, icon: '🚙' },
+            auto_m4: { id: 'auto_m4', name: 'รุ่นซุปเปอร์สปีด', cost: 45000, speed: 3.5, color: 0x3b82f6, icon: '🏎️' },
+            auto_m5: { id: 'auto_m5', name: 'รุ่นอัลตร้าเทอร์โบ', cost: 60000, speed: 5.0, color: 0xef4444, icon: '🚀' }
+        };
+
+        let ownedCars = { auto_m1: 0, auto_m2: 0, auto_m3: 0, auto_m4: 0, auto_m5: 0 };
+        
+        let activeCars = [];
+        let boardLogical = []; 
+        let growthLogical = []; 
+        let labelGrid = [];     
+        let selectedPlotIndex = null;
+        let buyingPlotIndex = null;
+        let currentSellType = null;
+        let plotMeshes = []; 
+        let plotFences = [];    
+
+        let merchantTimer = 120; 
+        let isMerchantHere = false;
+        let merchantStayTimer = 0;
+        let currentOrder = null;
+        let isMarketOpen = true;
+        let marketCooldownTimer = 0; 
+        
+        let hasDog = false;
+        let dogGroup = null;
+        let dogData = { logicalPos: { x: 0, z: 0 }, targetPos: null, speed: 1.5, hunger: 100, happiness: 100 };
+
+        let farmAnimals = []; 
+        let droppedItems = []; 
+        let totalEggsDropped = 0;
+
+        const plotNames = [
+            'แปลงฟาร์ม 1', 'แปลงฟาร์ม 2', 'แปลงฟาร์ม 3', 
+            'แปลงฟาร์ม 4', 'ศูนย์บัญชาการ (โรงนา)', 'แปลงฟาร์ม 5', 
+            'แปลงปศุสัตว์ 1', 'แปลงปศุสัตว์ 2', 'แปลงปศุสัตว์ 3'
+        ];
+
+        const colorDay = new THREE.Color(0x87CEEB);
+        let gameTime = 0;
+
+        function getTotalStorage() {
+            return inventory.oat + inventory.wheat + inventory.barley + inventory.corn + inventory.soybean + inventory.milk + inventory.egg;
+        }
+
+        // ==========================================
+        // MENU & UI LOGIC
+        // ==========================================
+        function initMenu() {
+            document.getElementById('menu-player-name').innerText = playerName;
+            
+            document.getElementById('menu-money').innerText = inventory.money.toLocaleString();
+            if (isFarmActive) {
+                document.getElementById('resume-container').classList.remove('hidden');
+                document.getElementById('start-btn-group').classList.add('hidden');
+            } else {
+                document.getElementById('resume-container').classList.add('hidden');
+                document.getElementById('start-btn-group').classList.remove('hidden');
+            }
+            updateUI();
+        }
+
+        function startGame() {
+            initAudio();
+            sfx.click();
+            isFarmActive = true;
+            showGameScreen();
+            generateMap(); 
+            updateUI();
+            updateMerchantUI();
+            updateMarketUI();
+        }
+
+        function resumeGame() {
+            initAudio();
+            sfx.click();
+            showGameScreen();
+            updateMerchantUI();
+            updateMarketUI();
+        }
+
+        function showGameScreen() {
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('canvas-container').style.display = 'block';
+            document.getElementById('btn-toggle-panel').style.display = 'block';
+            document.getElementById('top-hud').style.display = 'flex'; 
+            document.getElementById('ui-panel').style.display = 'flex';
+            isInMenu = false;
+
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            renderer.setSize(width, height);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+        }
+
+        function returnToMenu() {
+            sfx.click();
+            isInMenu = true;
+            document.getElementById('main-menu').style.display = 'flex';
+            document.getElementById('canvas-container').style.display = 'none';
+            document.getElementById('btn-toggle-panel').style.display = 'none';
+            document.getElementById('top-hud').style.display = 'none'; 
+            document.getElementById('ui-panel').style.display = 'none';
+            document.getElementById('merchant-hud').style.display = 'none';
+            if (isPanelOpen) togglePanel();
+            closeCarSelect();
+            closeBuyPlotModal();
+            closeSellModal();
+            closeSiloModal();
+            closeMerchantModal();
+            closeDogModal();
+            closeAnimalShop();
+            closeLeaderboard();
+            closeSettings();
+            initMenu();
+        }
+
+        // ==========================================
+        // LEADERBOARD SYSTEM (Client-side sorting)
+        // ==========================================
+        function openLeaderboard() {
+            sfx.click();
+            const modal = document.getElementById('leaderboard-modal');
+            const listContainer = document.getElementById('leaderboard-list');
+            const loadingEl = document.getElementById('leaderboard-loading');
+
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-95', 'scale-100');
+            
+            listContainer.innerHTML = '';
+            loadingEl.style.display = 'block';
+
+            db.collection("farmSaves")
+                .get()
+                .then((querySnapshot) => {
+                    loadingEl.style.display = 'none';
+                    
+                    if (querySnapshot.empty) {
+                        listContainer.innerHTML = '<div class="text-center text-gray-400 py-4">ยังไม่มีข้อมูลผู้เล่นในระบบ</div>';
+                        return;
+                    }
+
+                    // จัดเรียงข้อมูล
+                    let players = [];
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        let pName = data.playerName || 'ชาวนานิรนาม';
+                        let money = data.inventory ? (data.inventory.money || 0) : 0;
+                        players.push({ name: pName, money: money });
+                    });
+
+                    // เรียงจากมากไปน้อย
+                    players.sort((a, b) => b.money - a.money);
+                    
+                    // เอาแค่ 10 อันดับแรก
+                    let top10 = players.slice(0, 10);
+
+                    let html = '';
+                    let rank = 1;
+                    
+                    top10.forEach((p) => {
+                        let rankIcon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `<span class="text-gray-400 font-bold w-6 inline-block text-center">${rank}.</span>`;
+                        let bgClass = rank <= 3 ? 'bg-gradient-to-r from-yellow-900/40 to-yellow-700/20 border-yellow-500/50' : 'bg-gray-800/80 border-gray-600';
+                        let textClass = rank <= 3 ? 'text-yellow-400 font-bold' : 'text-white';
+
+                        html += `
+                            <div class="flex justify-between items-center p-3 mb-2 rounded-xl border ${bgClass}">
+                                <div class="flex items-center gap-3">
+                                    <div class="text-2xl">${rankIcon}</div>
+                                    <div class="${textClass} text-lg truncate max-w-[150px] md:max-w-[200px]" title="${p.name}">${p.name}</div>
+                                </div>
+                                <div class="text-green-400 font-bold text-lg drop-shadow-md">฿ ${p.money.toLocaleString()}</div>
+                            </div>
+                        `;
+                        rank++;
+                    });
+                    
+                    listContainer.innerHTML = html;
+                })
+                .catch((error) => {
+                    console.error("Error getting leaderboard: ", error);
+                    loadingEl.style.display = 'none';
+                    listContainer.innerHTML = `<div class="text-center text-red-400 py-4">เกิดข้อผิดพลาดในการโหลดข้อมูล: ${error.message}</div>`;
+                });
+        }
+
+        function closeLeaderboard() {
+            sfx.click();
+            const modal = document.getElementById('leaderboard-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-100', 'scale-95');
+        }
+
+        function togglePanel() {
+            sfx.click();
+            const panel = document.getElementById('ui-panel');
+            isPanelOpen = !isPanelOpen;
+            if (isPanelOpen) {
+                panel.classList.remove('-translate-x-full');
+            } else {
+                panel.classList.add('-translate-x-full');
+            }
+        }
+
+        function togglePause() {
+            sfx.click();
+            isPaused = !isPaused;
+            const btn = document.getElementById('btn-pause');
+            if(isPaused) {
+                btn.innerHTML = '▶️ ทำงานต่อ';
+                btn.classList.replace('bg-blue-600', 'bg-red-600');
+            } else {
+                btn.innerHTML = '⏸️ หยุดระบบ';
+                btn.classList.replace('bg-red-600', 'bg-blue-600');
+            }
+        }
+
+        function openHowToPlay() {
+            sfx.click();
+            const modal = document.getElementById('how-to-play-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-95', 'scale-100');
+        }
+
+        function closeHowToPlay() {
+            sfx.click();
+            const modal = document.getElementById('how-to-play-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-100', 'scale-95');
+        }
+
+        function buyCar(key) {
+            const car = CAR_TYPES[key];
+            if (inventory.money >= car.cost) {
+                inventory.money -= car.cost;
+                ownedCars[key]++;
+                
+                if (isFarmActive) {
+                    let carGroup = createCarModel(car.color);
+                    carGroup.visible = false; 
+                    scene.add(carGroup);
+                    
+                    activeCars.push({
+                        id: Date.now() + Math.random(),
+                        type: key,
+                        group: carGroup,
+                        logicalPos: { x: 0, z: 0 },
+                        nextStep: null,
+                        targetPos: null,
+                        speed: car.speed,
+                        assignedPlot: null,
+                        jobType: 'harvest',
+                        targetCrop: null
+                    });
+                }
+                
+                updateUI();
+                sfx.buy();
+                showMessage('ซื้อหุ่นยนต์สำเร็จ!', `คุณได้ซื้อ <span class="text-yellow-400">${car.name}</span> ${car.icon} เข้าสู่คลังพร้อมใช้งาน!`, car.icon);
+            } else {
+                sfx.error();
+                showMessage('เงินไม่พอ!', `ต้องการเงินเพิ่มอีก <span class="text-red-400">${(car.cost - inventory.money).toLocaleString()} ฿</span>`, '❌');
+            }
+        }
+
+        function openAnimalShopModal(plotIndex) {
+            sfx.click();
+            selectedPlotIndex = plotIndex;
+            document.getElementById('animal-plot-subtitle').innerText = plotNames[plotIndex];
+            
+            const chickensHere = farmAnimals.filter(a => a.plotIndex === plotIndex && a.type === 'chicken').length;
+            const cowsHere = farmAnimals.filter(a => a.plotIndex === plotIndex && a.type === 'cow').length;
+
+            document.getElementById('animal-status-ui').innerHTML = `
+                <div class="mb-2 text-gray-400">สถานะแปลงปศุสัตว์นี้:</div>
+                <div class="flex justify-between items-center mb-1">
+                    <span>🐔 ไก่ไข่:</span>
+                    <span class="font-bold text-orange-400">${chickensHere} / 6 ตัว</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span>🐮 วัวนม:</span>
+                    <span class="font-bold text-gray-300">${cowsHere} / 6 ตัว</span>
+                </div>
+            `;
+
+            const modal = document.getElementById('animal-shop-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-95', 'scale-100');
+        }
+        
+        function closeAnimalShop() {
+            sfx.click();
+            const modal = document.getElementById('animal-shop-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-100', 'scale-95');
+        }
+
+        function spawnAnimal(type, plotIndex) {
+            let group = type === 'cow' ? createCowModel() : createChickenModel();
+            let pX = plotIndex % PLOTS_X;
+            let pZ = Math.floor(plotIndex / PLOTS_X);
+            let cx = (pX * (PLOT_SIZE + GAP)) + (PLOT_SIZE / 2);
+            let cz = (pZ * (PLOT_SIZE + GAP)) + (PLOT_SIZE / 2) + (Math.random() * 2 - 1);
+            
+            let spawnX = type === 'chicken' ? cx - 3 : cx + 3;
+            spawnX += (Math.random() * 2 - 1);
+            
+            group.position.set(spawnX, 0, cz);
+            envGroup.add(group);
+            
+            farmAnimals.push({
+                type: type,
+                plotIndex: plotIndex,
+                group: group,
+                targetPos: null,
+                speed: type === 'cow' ? 0.5 : 0.8
+            });
+        }
+
+        function buyAnimal(type) {
+            const cost = type === 'cow' ? 1000 : 100;
+            const typeAnimalsHere = farmAnimals.filter(a => a.plotIndex === selectedPlotIndex && a.type === type).length;
+            
+            if (typeAnimalsHere >= 6) {
+                sfx.error();
+                let typeName = type === 'cow' ? 'วัวนม' : 'ไก่ไข่';
+                showMessage('พื้นที่เต็ม!', `แปลงนี้เลี้ยง${typeName}ได้สูงสุดชนิดละ 6 ตัวเท่านั้น`, '🛑');
+                return;
+            }
+
+            if (inventory.money >= cost) {
+                inventory.money -= cost;
+                sfx.buy();
+                
+                spawnAnimal(type, selectedPlotIndex);
+                
+                updateUI();
+                closeAnimalShop();
+                showMessage('ซื้อสำเร็จ!', `จัดส่ง ${type === 'cow' ? 'วัวนม' : 'ไก่ไข่'} ลงแปลงปศุสัตว์แล้ว!`, type === 'cow' ? '🐮' : '🐔');
+            } else {
+                sfx.error();
+                showMessage('เงินไม่พอ!', `ต้องการเงิน ${(cost - inventory.money).toLocaleString()} ฿`, '❌');
+            }
+        }
+
+        // ==========================================
+        // THREE.JS SETUP & OPTIMIZATION
+        // ==========================================
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = colorDay;
+        scene.fog = new THREE.Fog(0x87CEEB, 30, 110); 
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+
+        let ambientLight = new THREE.AmbientLight(0xffffff, 1.2); 
+        scene.add(ambientLight);
+
+        let dirLight = new THREE.DirectionalLight(0xffffff, 1.2); 
+        dirLight.position.set(30, 50, 30);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 1024; 
+        dirLight.shadow.mapSize.height = 1024;
+        dirLight.shadow.camera.left = -50;
+        dirLight.shadow.camera.right = 50;
+        dirLight.shadow.camera.top = 50;
+        dirLight.shadow.camera.bottom = -50;
+        scene.add(dirLight);
+
+        const mineGroup = new THREE.Group();
+        scene.add(mineGroup);
+        const envGroup = new THREE.Group();
+        scene.add(envGroup);
+        const itemGroup = new THREE.Group(); 
+        scene.add(itemGroup);
+
+        const sharedMats = {
+            green: new THREE.MeshLambertMaterial({ color: 0x4ade80 }),
+            darkGreen: new THREE.MeshLambertMaterial({ color: 0x166534 }),
+            oat: new THREE.MeshLambertMaterial({ color: 0xd2b48c }),
+            wheat: new THREE.MeshLambertMaterial({ color: 0xf5deb3 }),
+            barley: new THREE.MeshLambertMaterial({ color: 0xdaa520 }),
+            cornYellow: new THREE.MeshLambertMaterial({ color: 0xffd700 }),
+            soybean: new THREE.MeshLambertMaterial({ color: 0x9acd32 })
+        };
+        const sharedGeos = {
+            stalkNorm: new THREE.CylinderGeometry(0.02, 0.02, 0.5, 4),
+            headNorm: new THREE.CylinderGeometry(0.01, 0.06, 0.3, 5),
+            cornStalk: new THREE.CylinderGeometry(0.05, 0.05, 1.2, 5),
+            cornCob: new THREE.CylinderGeometry(0.06, 0.06, 0.25, 5),
+            soyStalk: new THREE.CylinderGeometry(0.04, 0.04, 0.4, 4),
+            soyBush: new THREE.DodecahedronGeometry(0.3, 0)
+        };
+
+        function createCowModel() {
+            const group = new THREE.Group();
+            const wMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            const bMat = new THREE.MeshLambertMaterial({ color: 0x222222 });
+            const pinkMat = new THREE.MeshLambertMaterial({ color: 0xffb6c1 });
+
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.4, 0.8), wMat);
+            body.position.y = 0.4; body.castShadow = true; group.add(body);
+            
+            const spot = new THREE.Mesh(new THREE.BoxGeometry(0.51, 0.2, 0.3), bMat);
+            spot.position.set(0, 0.45, 0.1); group.add(spot);
+
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), wMat);
+            head.position.set(0, 0.6, 0.5); head.castShadow = true; group.add(head);
+            
+            const snout = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.15, 0.15), pinkMat);
+            snout.position.set(0, 0.5, 0.65); group.add(snout);
+
+            const udder = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.1, 0.2), pinkMat);
+            udder.position.set(0, 0.15, -0.1); group.add(udder);
+
+            const legGeo = new THREE.BoxGeometry(0.1, 0.3, 0.1);
+            const lfl = new THREE.Mesh(legGeo, wMat); lfl.position.set(0.2, 0.15, 0.3); lfl.name="leg1";
+            const lfr = new THREE.Mesh(legGeo, wMat); lfr.position.set(-0.2, 0.15, 0.3); lfr.name="leg2";
+            const lbl = new THREE.Mesh(legGeo, wMat); lbl.position.set(0.2, 0.15, -0.3); lbl.name="leg3";
+            const lbr = new THREE.Mesh(legGeo, wMat); lbr.position.set(-0.2, 0.15, -0.3); lbr.name="leg4";
+            group.add(lfl, lfr, lbl, lbr);
+
+            return group;
+        }
+
+        function createChickenModel() {
+            const group = new THREE.Group();
+            const wMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            const rMat = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+            const yMat = new THREE.MeshLambertMaterial({ color: 0xffa500 });
+
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.25), wMat);
+            body.position.y = 0.15; body.castShadow = true; group.add(body);
+            
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.15, 0.15), wMat);
+            head.position.set(0, 0.3, 0.1); group.add(head);
+
+            const beak = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.1, 4), yMat);
+            beak.position.set(0, 0.3, 0.2); beak.rotation.x = Math.PI/2; group.add(beak);
+
+            const crest = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.08, 0.1), rMat);
+            crest.position.set(0, 0.4, 0.1); group.add(crest);
+
+            const legGeo = new THREE.BoxGeometry(0.02, 0.1, 0.02);
+            const ll = new THREE.Mesh(legGeo, yMat); ll.position.set(0.05, 0.05, 0); ll.name="leg1";
+            const lr = new THREE.Mesh(legGeo, yMat); lr.position.set(-0.05, 0.05, 0); lr.name="leg2";
+            group.add(ll, lr);
+
+            group.scale.set(2, 2, 2); 
+            return group;
+        }
+
+        function createMilkModel() {
+            const group = new THREE.Group();
+            const bucketMat = new THREE.MeshLambertMaterial({ color: 0xaaaaaa });
+            const milkMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            
+            const bucket = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.15, 0.3, 12), bucketMat);
+            bucket.position.y = 0.15; bucket.castShadow = true; group.add(bucket);
+            
+            const liquid = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.05, 12), milkMat);
+            liquid.position.y = 0.28; group.add(liquid);
+            
+            group.userData = { isDrop: true, type: 'milk' };
+            return group;
+        }
+
+        function createEggModel() {
+            const eggGeo = new THREE.SphereGeometry(0.25, 16, 16); 
+            eggGeo.scale(1, 1.3, 1);
+            const eggMat = new THREE.MeshLambertMaterial({ color: 0xfff3e0 });
+            const egg = new THREE.Mesh(eggGeo, eggMat);
+            egg.position.y = 0.25; 
+            egg.castShadow = true;
+            egg.userData = { isDrop: true, type: 'egg' };
+            return egg;
+        }
+
+        function createGoldenEggModel() {
+            const eggGeo = new THREE.SphereGeometry(0.35, 16, 16); 
+            eggGeo.scale(1, 1.3, 1);
+            const eggMat = new THREE.MeshLambertMaterial({ color: 0xffd700, emissive: 0xb8860b, emissiveIntensity: 0.5 });
+            const egg = new THREE.Mesh(eggGeo, eggMat);
+            egg.position.y = 0.35; 
+            egg.castShadow = true;
+            egg.userData = { isDrop: true, type: 'golden_egg' };
+            
+            const light = new THREE.PointLight(0xffd700, 1.5, 3);
+            light.position.set(0, 0, 0);
+            egg.add(light);
+            
+            return egg;
+        }
+
+        function createDogModel() {
+            const group = new THREE.Group();
+            const mat = new THREE.MeshLambertMaterial({ color: 0xc47e45 }); 
+            const darkMat = new THREE.MeshLambertMaterial({ color: 0x3e2723 });
+            
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.25, 0.5), mat);
+            body.position.y = 0.2;
+            body.castShadow = true;
+            group.add(body);
+            
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.25), mat);
+            head.position.set(0, 0.35, 0.3);
+            head.castShadow = true;
+            group.add(head);
+            
+            const snout = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.1, 0.15), darkMat);
+            snout.position.set(0, 0.3, 0.45);
+            group.add(snout);
+            
+            const earGeo = new THREE.BoxGeometry(0.05, 0.15, 0.1);
+            const earL = new THREE.Mesh(earGeo, darkMat); earL.position.set(0.1, 0.5, 0.25);
+            const earR = new THREE.Mesh(earGeo, darkMat); earR.position.set(-0.1, 0.5, 0.25);
+            group.add(earL, earR);
+            
+            const tail = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.2, 0.05), mat);
+            tail.position.set(0, 0.3, -0.25);
+            tail.rotation.x = Math.PI / 4;
+            group.add(tail);
+            
+            const legGeo = new THREE.BoxGeometry(0.08, 0.2, 0.08);
+            const legFL = new THREE.Mesh(legGeo, mat); legFL.position.set(0.1, 0.1, 0.2); legFL.name = "dog_leg_fl"; legFL.castShadow = true;
+            const legFR = new THREE.Mesh(legGeo, mat); legFR.position.set(-0.1, 0.1, 0.2); legFR.name = "dog_leg_fr"; legFR.castShadow = true;
+            const legBL = new THREE.Mesh(legGeo, mat); legBL.position.set(0.1, 0.1, -0.2); legBL.name = "dog_leg_bl"; legBL.castShadow = true;
+            const legBR = new THREE.Mesh(legGeo, mat); legBR.position.set(-0.1, 0.1, -0.2); legBR.name = "dog_leg_br"; legBR.castShadow = true;
+            group.add(legFL, legFR, legBL, legBR);
+            
+            group.userData = { isDog: true };
+            group.children.forEach(c => c.userData = { isDog: true });
+            
+            return group;
+        }
+
+        function createShelter() {
+            const group = new THREE.Group();
+            const woodMat = new THREE.MeshLambertMaterial({ color: 0x5c4033 });
+            const roofMat = new THREE.MeshLambertMaterial({ color: 0x8b0000 });
+            
+            const postGeo = new THREE.BoxGeometry(0.2, 2, 0.2);
+            const p1 = new THREE.Mesh(postGeo, woodMat); p1.position.set(-1.5, 1, -1.5); p1.castShadow = true;
+            const p2 = new THREE.Mesh(postGeo, woodMat); p2.position.set(1.5, 1, -1.5); p2.castShadow = true;
+            const p3 = new THREE.Mesh(postGeo, woodMat); p3.position.set(-1.5, 1, 1.5); p3.castShadow = true;
+            const p4 = new THREE.Mesh(postGeo, woodMat); p4.position.set(1.5, 1, 1.5); p4.castShadow = true;
+            
+            const roofGeo = new THREE.ConeGeometry(2.8, 1.2, 4);
+            const roof = new THREE.Mesh(roofGeo, roofMat);
+            roof.position.set(0, 2.6, 0);
+            roof.rotation.y = Math.PI / 4;
+            roof.castShadow = true;
+            
+            group.add(p1, p2, p3, p4, roof);
+            return group;
+        }
+
+        function createGrassModel() {
+            const group = new THREE.Group();
+            const mat = new THREE.MeshLambertMaterial({ color: 0x4ade80 });
+            const geo = new THREE.ConeGeometry(0.1, 0.5, 3);
+            
+            const b1 = new THREE.Mesh(geo, mat);
+            b1.position.set(0, 0.25, 0);
+            b1.rotation.z = 0.2;
+            b1.castShadow = true;
+            
+            const b2 = new THREE.Mesh(geo, mat);
+            b2.position.set(0.1, 0.15, 0.1);
+            b2.rotation.z = -0.3;
+            b2.rotation.x = 0.2;
+            b2.castShadow = true;
+            
+            const b3 = new THREE.Mesh(geo, mat);
+            b3.position.set(-0.1, 0.2, -0.1);
+            b3.rotation.z = 0.1;
+            b3.rotation.x = -0.3;
+            b3.castShadow = true;
+            
+            group.add(b1, b2, b3);
+            
+            let scale = 0.5 + Math.random() * 0.8;
+            group.scale.set(scale, scale, scale);
+            return group;
+        }
+
+        function createCrop(type, x, z) {
+            const group = new THREE.Group();
+            group.userData = { x, z, type };
+
+            if (type === 'oat' || type === 'wheat' || type === 'barley') {
+                let hMat = sharedMats.oat; 
+                if (type === 'wheat') hMat = sharedMats.wheat; 
+                if (type === 'barley') hMat = sharedMats.barley; 
+                
+                const positions = [ {x: -0.2, z: -0.2}, {x: 0.2, z: 0.1}, {x: -0.1, z: 0.3} ];
+                positions.forEach(pos => {
+                    const stalk = new THREE.Mesh(sharedGeos.stalkNorm, sharedMats.green);
+                    stalk.position.set(pos.x, 0.25, pos.z);
+                    stalk.castShadow = true;
+                    group.add(stalk);
+                    const head = new THREE.Mesh(sharedGeos.headNorm, hMat);
+                    head.position.set(pos.x, 0.65, pos.z);
+                    head.castShadow = true;
+                    group.add(head);
+                });
+            } 
+            else if (type === 'corn') {
+                const stalk = new THREE.Mesh(sharedGeos.cornStalk, sharedMats.green);
+                stalk.position.set(0, 0.6, 0);
+                stalk.castShadow = true;
+                group.add(stalk);
+                
+                const cob1 = new THREE.Mesh(sharedGeos.cornCob, sharedMats.cornYellow);
+                cob1.position.set(0.08, 0.5, 0.08);
+                cob1.rotation.z = -Math.PI / 4;
+                group.add(cob1);
+                
+                const cob2 = new THREE.Mesh(sharedGeos.cornCob, sharedMats.cornYellow);
+                cob2.position.set(-0.08, 0.8, -0.08);
+                cob2.rotation.z = Math.PI / 4;
+                group.add(cob2);
+            }
+            else if (type === 'soybean') {
+                const stalk = new THREE.Mesh(sharedGeos.soyStalk, sharedMats.darkGreen);
+                stalk.position.set(0, 0.2, 0);
+                group.add(stalk);
+                
+                const bush = new THREE.Mesh(sharedGeos.soyBush, sharedMats.soybean);
+                bush.position.set(0, 0.4, 0);
+                bush.castShadow = true;
+                group.add(bush);
+            }
+            group.position.set(x, 0, z);
+            return group;
+        }
+
+        function createPlotFence(isOwned, isLivestock = false) {
+            const group = new THREE.Group();
+            
+            const fenceColor = isOwned ? 0xf8fafc : 0x475569; 
+            const railColor = isOwned ? 0xf8fafc : 0xb91c1c; 
+            
+            const postMat = new THREE.MeshLambertMaterial({ color: fenceColor });
+            const railMat = new THREE.MeshLambertMaterial({ color: railColor });
+            
+            const plotW = PLOT_SIZE - 0.2; 
+            const halfW = plotW / 2;
+            const height = 0.5;
+            const thickness = 0.15;
+            
+            const railGeoX = new THREE.BoxGeometry(plotW, 0.1, thickness/2);
+            const railGeoZ = new THREE.BoxGeometry(thickness/2, 0.1, plotW);
+            
+            const r1 = new THREE.Mesh(railGeoX, railMat); r1.position.set(0, height - 0.1, halfW); r1.castShadow = true;
+            const r2 = new THREE.Mesh(railGeoX, railMat); r2.position.set(0, height - 0.1, -halfW); r2.castShadow = true;
+            const r3 = new THREE.Mesh(railGeoZ, railMat); r3.position.set(halfW, height - 0.1, 0); r3.castShadow = true;
+            const r4 = new THREE.Mesh(railGeoZ, railMat); r4.position.set(-halfW, height - 0.1, 0); r4.castShadow = true;
+            
+            const rm1 = new THREE.Mesh(railGeoX, railMat); rm1.position.set(0, height/2 - 0.05, halfW); rm1.castShadow = true;
+            const rm2 = new THREE.Mesh(railGeoX, railMat); rm2.position.set(0, height/2 - 0.05, -halfW); rm2.castShadow = true;
+            const rm3 = new THREE.Mesh(railGeoZ, railMat); rm3.position.set(halfW, height/2 - 0.05, 0); rm3.castShadow = true;
+            const rm4 = new THREE.Mesh(railGeoZ, railMat); rm4.position.set(-halfW, height/2 - 0.05, 0); rm4.castShadow = true;
+            
+            group.add(r1, r2, r3, r4, rm1, rm2, rm3, rm4);
+            
+            const postGeo = new THREE.BoxGeometry(0.25, height, 0.25);
+            const step = plotW / 3;
+            for(let i=0; i<=3; i++) {
+                const px = -halfW + (i * step);
+                
+                const p1 = new THREE.Mesh(postGeo, postMat); p1.position.set(px, height/2, halfW); p1.castShadow = true;
+                const p2 = new THREE.Mesh(postGeo, postMat); p2.position.set(px, height/2, -halfW); p2.castShadow = true;
+                group.add(p1, p2);
+                
+                if (i > 0 && i < 3) {
+                    const p3 = new THREE.Mesh(postGeo, postMat); p3.position.set(halfW, height/2, px); p3.castShadow = true;
+                    const p4 = new THREE.Mesh(postGeo, postMat); p4.position.set(-halfW, height/2, px); p4.castShadow = true;
+                    group.add(p3, p4);
+                }
+            }
+            
+            if (isLivestock) {
+                const centerRailMat = new THREE.MeshLambertMaterial({ color: railColor });
+                const midRail1 = new THREE.Mesh(railGeoZ, centerRailMat); midRail1.position.set(0, height - 0.1, 0); midRail1.castShadow = true;
+                const midRail2 = new THREE.Mesh(railGeoZ, centerRailMat); midRail2.position.set(0, height/2 - 0.05, 0); midRail2.castShadow = true;
+                group.add(midRail1, midRail2);
+
+                for(let i=1; i<3; i++) {
+                    const pz = -halfW + (i * step);
+                    const pMid = new THREE.Mesh(postGeo, postMat); pMid.position.set(0, height/2, pz); pMid.castShadow = true;
+                    group.add(pMid);
+                }
+            }
+            
+            return group;
+        }
+
+        function createCarModel(colorHex) {
+            const carGroup = new THREE.Group();
+            
+            const bodyMat = new THREE.MeshLambertMaterial({ color: colorHex }); 
+            const bodyGeo = new THREE.BoxGeometry(0.7, 0.3, 0.5);
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 0.35;
+            body.castShadow = true;
+            carGroup.add(body);
+
+            const headMat = new THREE.MeshLambertMaterial({ color: 0x1f2937 });
+            const headGeo = new THREE.BoxGeometry(0.3, 0.2, 0.3);
+            const head = new THREE.Mesh(headGeo, headMat);
+            head.position.set(0.2, 0.55, 0);
+            carGroup.add(head);
+
+            const eyeMat = new THREE.MeshLambertMaterial({ color: 0x22c55e, emissive: 0x22c55e, emissiveIntensity: 0.5 });
+            const eye = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.15), eyeMat);
+            eye.position.set(0.36, 0.55, 0);
+            carGroup.add(eye);
+
+            const scissorMat = new THREE.MeshLambertMaterial({ color: 0x94a3b8 });
+            const scissorGeo = new THREE.BoxGeometry(0.5, 0.05, 0.1);
+            
+            const scissorL = new THREE.Mesh(scissorGeo, scissorMat);
+            scissorL.position.set(0.5, 0.3, 0.15);
+            scissorL.rotation.y = -Math.PI / 6;
+            scissorL.name = "scissorL";
+            scissorL.castShadow = true;
+            carGroup.add(scissorL);
+
+            const scissorR = new THREE.Mesh(scissorGeo, scissorMat);
+            scissorR.position.set(0.5, 0.3, -0.15);
+            scissorR.rotation.y = Math.PI / 6;
+            scissorR.name = "scissorR";
+            scissorR.castShadow = true;
+            carGroup.add(scissorR);
+
+            const legMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
+            const legGeo = new THREE.BoxGeometry(0.1, 0.4, 0.1);
+            
+            const legPositions = [
+                { x: 0.2, z: 0.25, name: "leg_R1", rotX: -Math.PI/6 },
+                { x: -0.1, z: 0.25, name: "leg_R2", rotX: -Math.PI/6 },
+                { x: -0.4, z: 0.25, name: "leg_R3", rotX: -Math.PI/6 },
+                { x: 0.2, z: -0.25, name: "leg_L1", rotX: Math.PI/6 },
+                { x: -0.1, z: -0.25, name: "leg_L2", rotX: Math.PI/6 },
+                { x: -0.4, z: -0.25, name: "leg_L3", rotX: Math.PI/6 }
+            ];
+
+            legPositions.forEach((pos) => {
+                const legGroup = new THREE.Group(); 
+                legGroup.position.set(pos.x, 0.3, pos.z);
+                
+                const leg = new THREE.Mesh(legGeo, legMat);
+                leg.position.set(0, -0.15, pos.z > 0 ? 0.1 : -0.1);
+                leg.rotation.x = pos.rotX;
+                leg.castShadow = true;
+                
+                legGroup.add(leg);
+                legGroup.name = pos.name;
+                carGroup.add(legGroup);
+            });
+
+            const containerMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
+            const contGeo = new THREE.BoxGeometry(0.3, 0.2, 0.4);
+            const backCont = new THREE.Mesh(contGeo, containerMat);
+            backCont.position.set(-0.2, 0.55, 0);
+            carGroup.add(backCont);
+
+            return carGroup;
+        }
+
+        function createSiloModel() {
+            const group = new THREE.Group();
+            const bodyGeo = new THREE.BoxGeometry(2.4, 2.0, 2.4);
+            const bodyMat = new THREE.MeshLambertMaterial({color: 0xb91c1c}); 
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 1.0;
+            body.castShadow = true;
+            body.receiveShadow = true;
+
+            const roofGeo = new THREE.ConeGeometry(2.0, 1.2, 4);
+            const roofMat = new THREE.MeshLambertMaterial({color: 0x334155});
+            const roof = new THREE.Mesh(roofGeo, roofMat);
+            roof.position.y = 2.6;
+            roof.rotation.y = Math.PI / 4; 
+            roof.castShadow = true;
+
+            const doorGeo = new THREE.BoxGeometry(0.8, 1.2, 0.1);
+            const doorMat = new THREE.MeshLambertMaterial({color: 0xf8fafc});
+            const door = new THREE.Mesh(doorGeo, doorMat);
+            door.position.set(0, 0.6, 1.2); 
+
+            group.add(body);
+            group.add(roof);
+            group.add(door);
+            group.scale.set(0.85, 0.85, 0.85);
+
+            return group;
+        }
+
+        const groundGeo = new THREE.PlaneGeometry(500, 500); 
+        const groundMat = new THREE.MeshLambertMaterial({ color: 0x3d7a26 }); 
+        const ground = new THREE.Mesh(groundGeo, groundMat);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.set(COLS/2, 0, ROWS/2); 
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        function spawnDog() {
+            if (!dogGroup) {
+                dogGroup = createDogModel();
+                let pX = 1, pZ = 1; 
+                let cx = (pX * (PLOT_SIZE + GAP)) + (PLOT_SIZE / 2);
+                let cz = (pZ * (PLOT_SIZE + GAP)) + (PLOT_SIZE / 2);
+                dogGroup.position.set(cx, 0, cz);
+                envGroup.add(dogGroup);
+            }
+        }
+
+        function buyDog() {
+            if (hasDog) return;
+            if (inventory.money >= 500) {
+                inventory.money -= 500;
+                hasDog = true;
+                sfx.buy();
+                spawnDog();
+                updateUI();
+                
+                const btnDog = document.getElementById('btn-buy-dog');
+                btnDog.innerHTML = '<span>✔️ มีน้องหมาแล้ว</span>';
+                btnDog.classList.add('opacity-50', 'cursor-not-allowed');
+                btnDog.disabled = true;
+                
+                closeSiloModal();
+                showMessage('ซื้อน้องหมาสำเร็จ!', 'น้องหมามาวิ่งเล่นในฟาร์มแล้ว!<br>คลิกที่ตัวน้องหมาเพื่อเล่นหรือให้อาหารได้เลย', '🐕');
+            } else {
+                sfx.error();
+                showMessage('เงินไม่พอ!', `ต้องการเงิน ${(500).toLocaleString()} ฿ สำหรับซื้อน้องหมา`, '❌');
+            }
+        }
+
+        function buySilo() {
+            if (siloCount >= MAX_SILOS) {
+                sfx.error();
+                return;
+            }
+
+            if (inventory.money >= SILO_COST) {
+                inventory.money -= SILO_COST;
+                
+                spawnSiloMesh(siloCount);
+                siloCount++; 
+                
+                sfx.buy();
+                updateUI();
+                openSiloModal(); 
+                
+                showMessage('สร้างโรงนาสำเร็จ!', `คุณสร้างโรงนาเพิ่ม 1 หลัง<br>ความจุผลผลิตสูงสุดเพิ่มเป็น ${(siloCount * SILO_CAPACITY).toLocaleString()} หน่วย!`, '🏡');
+            } else {
+                sfx.error();
+                showMessage('เงินไม่พอ!', `ต้องการเงิน ${(SILO_COST).toLocaleString()} ฿ สำหรับสร้างโรงนา`, '❌');
+            }
+        }
+
+        function openDogModal() {
+            sfx.click();
+            document.getElementById('dog-hunger').innerText = dogData.hunger;
+            document.getElementById('dog-happy').innerText = dogData.happiness;
+            const modal = document.getElementById('dog-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-95', 'scale-100');
+        }
+
+        function closeDogModal() {
+            sfx.click();
+            const modal = document.getElementById('dog-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-100', 'scale-95');
+        }
+
+        function playWithDog() {
+            sfx.dog();
+            dogData.happiness = Math.min(100, dogData.happiness + 20);
+            dogData.hunger = Math.max(0, dogData.hunger - 10);
+            document.getElementById('dog-happy').innerText = dogData.happiness;
+            document.getElementById('dog-hunger').innerText = dogData.hunger;
+        }
+
+        function feedDog() {
+            if (inventory.money >= 50) {
+                inventory.money -= 50;
+                sfx.buy();
+                dogData.hunger = Math.min(100, dogData.hunger + 40);
+                document.getElementById('dog-hunger').innerText = dogData.hunger;
+                updateUI();
+            } else {
+                sfx.error();
+            }
+        }
+
+        function generateMap() {
+            document.getElementById('loading').style.display = 'flex';
+            document.getElementById('loading').style.opacity = '1';
+
+            while(mineGroup.children.length > 0) mineGroup.remove(mineGroup.children[0]); 
+            while(envGroup.children.length > 0) envGroup.remove(envGroup.children[0]);
+            while(itemGroup.children.length > 0) itemGroup.remove(itemGroup.children[0]);
+            
+            activeCars.forEach(c => scene.remove(c.group));
+            activeCars = [];
+            farmAnimals.forEach(a => scene.remove(a.group));
+            farmAnimals = [];
+            
+            if(dogGroup) {
+                scene.remove(dogGroup); 
+                dogGroup = null;
+            }
+            
+            boardLogical = [];
+            growthLogical = [];
+            labelGrid = [];
+            document.getElementById('labels-container').innerHTML = '';
+            plotMeshes = new Array(9); 
+            plotFences = new Array(9);
+
+            const mountainMat = new THREE.MeshLambertMaterial({ color: 0x2d5e1e }); 
+            const pad1 = 12; 
+            const pad2 = 20; 
+
+            function spawnMountain(px, pz, sizeMultiplier) {
+                let h = (8 + Math.random() * 12) * sizeMultiplier;
+                let radius = (4 + Math.random() * 3) * sizeMultiplier;
+                const mountain = new THREE.Mesh(new THREE.ConeGeometry(radius, h, 6), mountainMat);
+                mountain.position.set(px + (Math.random()*4-2), h/2, pz + (Math.random()*4-2));
+                mountain.rotation.y = Math.random() * Math.PI;
+                envGroup.add(mountain);
+            }
+
+            for (let x = -pad1; x <= COLS + pad1; x += 6) {
+                spawnMountain(x, -pad1, 1);
+                spawnMountain(x, ROWS + pad1, 1);
+            }
+            for (let z = -pad1 + 6; z <= ROWS + pad1 - 6; z += 6) {
+                spawnMountain(-pad1, z, 1);
+                spawnMountain(COLS + pad1, z, 1);
+            }
+
+            for (let x = -pad2; x <= COLS + pad2; x += 8) {
+                spawnMountain(x, -pad2, 1.5);
+                spawnMountain(x, ROWS + pad2, 1.5);
+            }
+            for (let z = -pad2 + 8; z <= ROWS + pad2 - 8; z += 8) {
+                spawnMountain(-pad2, z, 1.5);
+                spawnMountain(COLS + pad2, z, 1.5);
+            }
+
+            const plotCrops = ['wheat', 'corn', 'barley', 'soybean', 'empty_silo', 'wheat', 'livestock', 'livestock', 'livestock'];
+            const isLoadingSave = (boardLogicalSaved && growthLogicalSaved);
+            
+            for (let pZ = 0; pZ < PLOTS_Z; pZ++) {
+                for (let pX = 0; pX < PLOTS_X; pX++) {
+                    let plotIndex = (pZ * PLOTS_X) + pX;
+                    let isSiloPlot = (plotIndex === 4);
+                    let isLivestock = (plotIndex >= 6); 
+                    
+                    let color = isSiloPlot ? 0x86efac : (isLivestock ? 0x6bbd45 : 0x79553a); 
+                    
+                    const pg = new THREE.Mesh(new THREE.PlaneGeometry(PLOT_SIZE, PLOT_SIZE), new THREE.MeshLambertMaterial({ color }));
+                    pg.rotation.x = -Math.PI / 2;
+                    
+                    let cx = (pX * (PLOT_SIZE + GAP)) + (PLOT_SIZE / 2) - 0.5;
+                    let cz = (pZ * (PLOT_SIZE + GAP)) + (PLOT_SIZE / 2) - 0.5;
+                    
+                    pg.position.set(cx, 0.01, cz);
+                    pg.receiveShadow = true;
+                    envGroup.add(pg);
+                    
+                    plotMeshes[plotIndex] = pg;
+
+                    let isOwned = isSiloPlot ? true : ownedPlots[plotIndex];
+                    let fenceGroup = createPlotFence(isOwned, isLivestock);
+                    fenceGroup.position.set(cx, 0.01, cz); 
+                    envGroup.add(fenceGroup);
+                    plotFences[plotIndex] = fenceGroup;
+                    
+                    if (isLivestock) {
+                        let chickenShelter = createShelter();
+                        chickenShelter.position.set(cx - PLOT_SIZE/4, 0, cz - PLOT_SIZE/2 + 2.5);
+                        chickenShelter.scale.set(0.7, 0.7, 0.7); 
+                        chickenShelter.children.forEach(c => c.userData = { isShelter: true, plotIndex: plotIndex });
+                        envGroup.add(chickenShelter);
+                        
+                        let chickenTrough = new THREE.Mesh(new THREE.BoxGeometry(1, 0.3, 0.6), new THREE.MeshLambertMaterial({ color: 0x888888 }));
+                        chickenTrough.position.set(cx - PLOT_SIZE/4, 0.15, cz + PLOT_SIZE/2 - 1.5);
+                        chickenTrough.castShadow = true;
+                        envGroup.add(chickenTrough);
+
+                        let cowShelter = createShelter();
+                        cowShelter.position.set(cx + PLOT_SIZE/4, 0, cz - PLOT_SIZE/2 + 2.5);
+                        cowShelter.children.forEach(c => c.userData = { isShelter: true, plotIndex: plotIndex });
+                        envGroup.add(cowShelter);
+                        
+                        let cowTrough = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.4, 0.8), new THREE.MeshLambertMaterial({ color: 0x888888 }));
+                        cowTrough.position.set(cx + PLOT_SIZE/4, 0.2, cz + PLOT_SIZE/2 - 1.5);
+                        cowTrough.castShadow = true;
+                        envGroup.add(cowTrough);
+                    }
+
+                    if (isSiloPlot || isLivestock) {
+                        for(let i=0; i<60; i++) {
+                            let grass = createGrassModel();
+                            let gz = cz - PLOT_SIZE/2 + 0.5 + Math.random()*(PLOT_SIZE-1);
+                            let gx = cx - PLOT_SIZE/2 + 0.5 + Math.random()*(PLOT_SIZE-1);
+                            grass.position.set(gx, 0, gz);
+                            envGroup.add(grass);
+                        }
+                    }
+                }
+            }
+
+            for (let z = 0; z < ROWS; z++) {
+                let row = [];
+                let gRow = [];
+                let lRow = [];
+                for (let x = 0; x < COLS; x++) {
+                    let cellType = 'empty';
+                    let growth = 0;
+
+                    if (isLoadingSave && boardLogicalSaved[z] && growthLogicalSaved[z]) {
+                        cellType = boardLogicalSaved[z][x] || 'empty';
+                        growth = growthLogicalSaved[z][x] || 0;
+                        
+                        if (cellType !== 'empty') {
+                            let crop = createCrop(cellType, x, z);
+                            let s = Math.max(0.01, growth / 100);
+                            crop.scale.set(s, s, s);
+                            mineGroup.add(crop);
+                        }
+                    } else {
+                        let localX = x % (PLOT_SIZE + GAP);
+                        let localZ = z % (PLOT_SIZE + GAP);
+                        
+                        if (localX < PLOT_SIZE && localZ < PLOT_SIZE) {
+                            let pX = Math.floor(x / (PLOT_SIZE + GAP));
+                            let pZ = Math.floor(z / (PLOT_SIZE + GAP));
+                            let plotIndex = (pZ * PLOTS_X) + pX; 
+                            
+                            if (plotIndex === 4 || plotIndex >= 6) { 
+                                cellType = 'empty';
+                            } else {
+                                cellType = plotCrops[plotIndex % plotCrops.length];
+                                if (Math.random() < 0.12) cellType = 'empty';
+                                
+                                if (cellType !== 'empty') {
+                                    growth = 100;
+                                    mineGroup.add(createCrop(cellType, x, z));
+                                }
+                            }
+                        }
+                    }
+                    
+                    row.push(cellType);
+                    gRow.push(growth);
+                    lRow.push(null);
+                }
+                boardLogical.push(row);
+                growthLogical.push(gRow);
+                labelGrid.push(lRow);
+            }
+            
+            for(let i = 0; i < siloCount; i++) {
+                spawnSiloMesh(i);
+            }
+            
+            if(hasDog) spawnDog();
+
+            if (savedAnimals) {
+                savedAnimals.forEach(a => {
+                    spawnAnimal(a.type, a.plotIndex);
+                });
+            } else {
+                spawnAnimal('cow', 7);
+                spawnAnimal('chicken', 7);
+            }
+
+            let carIdCounter = 0;
+            for(let key in ownedCars) {
+                for(let i = 0; i < ownedCars[key]; i++) {
+                    const car = CAR_TYPES[key];
+                    const carGroup = createCarModel(car.color);
+                    carGroup.visible = false; 
+                    scene.add(carGroup);
+
+                    activeCars.push({
+                        id: carIdCounter++,
+                        type: key,
+                        group: carGroup,
+                        logicalPos: { x: 0, z: 0 },
+                        nextStep: null,
+                        targetPos: null,
+                        speed: car.speed,
+                        assignedPlot: null,
+                        jobType: 'harvest',
+                        targetCrop: null
+                    });
+                }
+            }
+
+            camera.position.set(COLS / 2, 30, (ROWS / 2) + 20);
+            camera.lookAt(COLS / 2, 0, ROWS / 2);
+
+            setTimeout(() => { 
+                document.getElementById('loading').style.opacity = '0';
+                setTimeout(() => document.getElementById('loading').style.display = 'none', 500);
+            }, 100);
+        }
+
+        setInterval(() => {
+            if (!isFarmActive || isPaused) return;
+            for (let z = 0; z < ROWS; z++) {
+                for (let x = 0; x < COLS; x++) {
+                    if (boardLogical[z][x] !== 'empty' && growthLogical[z][x] < 100) {
+                        growthLogical[z][x] += 25; 
+                        if (growthLogical[z][x] > 100) growthLogical[z][x] = 100;
+                        
+                        let crop = mineGroup.children.find(m => m.userData.x === x && m.userData.z === z);
+                        if (crop) {
+                            let s = Math.max(0.1, growthLogical[z][x] / 100);
+                            crop.scale.set(s, s, s);
+                        }
+                    }
+                }
+            }
+        }, 30000); 
+
+        setInterval(() => {
+            if (!isFarmActive || isPaused) return;
+            
+            farmAnimals.forEach(a => {
+                if (a.type === 'cow') {
+                    let drop = createMilkModel();
+                    drop.position.set(a.group.position.x, 0, a.group.position.z);
+                    drop.userData.life = 10.0; 
+                    itemGroup.add(drop);
+                } else if (a.type === 'chicken') {
+                    totalEggsDropped++;
+                    let drop;
+                    
+                    if (totalEggsDropped >= 30 || Math.random() < (1/30)) {
+                        drop = createGoldenEggModel();
+                        totalEggsDropped = 0; 
+                    } else {
+                        drop = createEggModel();
+                    }
+                    
+                    drop.position.set(a.group.position.x, 0, a.group.position.z);
+                    drop.userData.life = 10.0; 
+                    itemGroup.add(drop);
+                }
+            });
+        }, 10000);
+
+        setInterval(() => {
+            if (!isFarmActive || isPaused) return;
+            
+            if (hasDog) {
+                dogData.hunger = Math.max(0, dogData.hunger - 1);
+                dogData.happiness = Math.max(0, dogData.happiness - 1);
+                if (!document.getElementById('dog-modal').classList.contains('opacity-0')) {
+                    document.getElementById('dog-hunger').innerText = dogData.hunger;
+                    document.getElementById('dog-happy').innerText = dogData.happiness;
+                }
+            }
+
+            if (!isMerchantHere) {
+                merchantTimer--;
+                if (merchantTimer <= 0) {
+                    isMerchantHere = true;
+                    merchantStayTimer = 60; 
+                    generateMerchantOrder();
+                    sfx.alert();
+                    showMessage('พ่อค้ามาถึงแล้ว!', 'พ่อค้ามีออเดอร์พิเศษมารับซื้อ ให้ราคาดี 120%!<br>กรุณาตรวจสอบออเดอร์ที่ <b>มุมขวาบน</b>!', '🤠');
+                }
+            } else {
+                merchantStayTimer--;
+                if (merchantStayTimer <= 0) {
+                    isMerchantHere = false;
+                    merchantTimer = 120; 
+                    currentOrder = null;
+                    closeMerchantModal(); 
+                }
+            }
+            updateMerchantUI();
+
+            if (!isMarketOpen) {
+                marketCooldownTimer--;
+                if (marketCooldownTimer <= 0) {
+                    isMarketOpen = true;
+                    updateMarketUI();
+                    sfx.buy();
+                    showMessage('ตลาดกลางเปิดแล้ว!', 'ตลาดกลางพร้อมรับซื้อผลผลิตอีกครั้ง!', '🏪');
+                } else {
+                    updateMarketUI();
+                }
+            }
+        }, 1000);
+
+        function updateMarketUI() {
+            const statusText = document.getElementById('market-status-text');
+            const buttons = document.querySelectorAll('.market-sell-btn');
+            
+            if (isMarketOpen) {
+                if(statusText) statusText.innerHTML = '(เปิด)';
+                if(statusText) statusText.className = 'text-[11px] text-green-400 bg-gray-900 px-2 py-0.5 rounded-full border border-gray-700';
+                
+                buttons.forEach(btn => {
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    btn.disabled = false;
+                });
+            } else {
+                let m = Math.floor(marketCooldownTimer / 60);
+                let s = marketCooldownTimer % 60;
+                let timeStr = `${m}:${s.toString().padStart(2, '0')}`;
+                
+                if(statusText) statusText.innerHTML = `(ปิดพัก ${timeStr})`;
+                if(statusText) statusText.className = 'text-[11px] text-red-400 bg-gray-900 px-2 py-0.5 rounded-full border border-red-900 animate-pulse';
+                
+                buttons.forEach(btn => {
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    btn.disabled = true;
+                });
+            }
+        }
+
+        function generateMerchantOrder() {
+            const crops = ['milk', 'egg']; 
+            const crop = crops[Math.floor(Math.random() * crops.length)];
+            const amount = Math.floor(Math.random() * 451) + 50; 
+            const pricePerUnit = Math.floor(PRICES[crop] * 1.2); 
+            
+            currentOrder = {
+                crop: crop,
+                amount: amount,
+                pricePerUnit: pricePerUnit,
+                total: amount * pricePerUnit
+            };
+        }
+
+        function updateMerchantUI() {
+            const hud = document.getElementById('merchant-hud');
+            const status = document.getElementById('merchant-status');
+            const alertBadge = document.getElementById('merchant-alert');
+            
+            if (!isInMenu && isFarmActive) {
+                hud.style.display = 'flex';
+            } else {
+                hud.style.display = 'none';
+                return;
+            }
+
+            if (isMerchantHere) {
+                hud.classList.remove('border-yellow-500');
+                hud.classList.add('border-green-500', 'animate-bounce');
+                status.innerText = `รอรับของ! (${merchantStayTimer}s)`;
+                status.classList.replace('text-yellow-400', 'text-green-400');
+                alertBadge.classList.remove('hidden');
+            } else {
+                hud.classList.remove('border-green-500', 'animate-bounce');
+                hud.classList.add('border-yellow-500');
+                let m = Math.floor(merchantTimer / 60);
+                let s = merchantTimer % 60;
+                status.innerText = `เดินทาง: ${m}:${s.toString().padStart(2, '0')}`;
+                status.classList.replace('text-green-400', 'text-yellow-400');
+                alertBadge.classList.add('hidden');
+            }
+        }
+
+        function spawnSiloMesh(index) {
+            let col = index % 5;
+            let row = Math.floor(index / 5);
+            let pX = 1, pZ = 1; 
+            
+            let startX = pX * (PLOT_SIZE + GAP);
+            let startZ = pZ * (PLOT_SIZE + GAP);
+            
+            let localX = 1.5 + (col * 3);
+            let localZ = 4.5 + (row * 6);
+            
+            let silo = createSiloModel();
+            silo.position.set(startX + localX, 0, startZ + localZ);
+            envGroup.add(silo);
+        }
+
+        function isPlotEmpty(plotIndex) {
+            let pX = plotIndex % PLOTS_X;
+            let pZ = Math.floor(plotIndex / PLOTS_X);
+            let startX = pX * (PLOT_SIZE + GAP);
+            let endX = startX + PLOT_SIZE;
+            let startZ = pZ * (PLOT_SIZE + GAP);
+            let endZ = startZ + PLOT_SIZE;
+
+            for (let z = startZ; z < endZ; z++) {
+                for (let x = startX; x < endX; x++) {
+                    if (boardLogical[z] && boardLogical[z][x] !== 'empty') {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        // ==========================================
+        // SYSTEM INTERACTION (DRAG, CLICK, ZOOM)
+        // ==========================================
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        
+        let isDragging = false;
+        let hasDragged = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let camStartX = 0;
+        let camStartZ = 0;
+
+        container.addEventListener('wheel', (event) => {
+            if(isInMenu || isPaused) return;
+            event.preventDefault();
+
+            const zoomSpeed = 0.05;
+            const deltaY = event.deltaY;
+            const newY = camera.position.y + (deltaY * zoomSpeed);
+
+            if (newY >= 10 && newY <= 150) { 
+                camera.position.y = newY;
+                camera.position.z += (deltaY * zoomSpeed * 0.5); 
+            }
+        }, { passive: false });
+
+        container.addEventListener('pointerdown', (event) => {
+            if(isInMenu || isPaused) return;
+            isDragging = true;
+            hasDragged = false;
+            dragStartX = event.clientX;
+            dragStartY = event.clientY;
+            camStartX = camera.position.x;
+            camStartZ = camera.position.z;
+        });
+
+        container.addEventListener('pointermove', (event) => {
+            if(isInMenu || !isDragging) return;
+            const dx = event.clientX - dragStartX;
+            const dy = event.clientY - dragStartY;
+            
+            if(Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                hasDragged = true;
+            }
+
+            if(hasDragged) {
+                camera.position.x = camStartX - (dx * 0.05);
+                camera.position.z = camStartZ - (dy * 0.05);
+            }
+        });
+
+        function showFloatText(x, y, text) {
+            const div = document.createElement('div');
+            div.className = 'float-text';
+            div.innerText = text;
+            div.style.left = x + 'px';
+            div.style.top = y + 'px';
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 1000);
+        }
+
+        container.addEventListener('pointerup', (event) => {
+            if(isInMenu) return;
+            isDragging = false;
+
+            if(!hasDragged) {
+                const rect = container.getBoundingClientRect();
+                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+
+                const itemIntersects = raycaster.intersectObject(itemGroup, true);
+                if (itemIntersects.length > 0) {
+                    let mesh = itemIntersects[0].object;
+                    while(mesh.parent && mesh.parent !== itemGroup) mesh = mesh.parent;
+                    
+                    if (mesh.userData && mesh.userData.isDrop) {
+                        if(getTotalStorage() >= siloCount * SILO_CAPACITY && mesh.userData.type !== 'golden_egg') {
+                            sfx.error();
+                            if(!isStorageFullNotified) {
+                                showMessage('คลังเต็ม!', 'ไม่สามารถเก็บของเพิ่มได้ กรุณาขายของในคลังก่อน', '📦');
+                                isStorageFullNotified = true;
+                            }
+                            return;
+                        }
+                        
+                        sfx.collect();
+                        if (mesh.userData.type === 'milk') {
+                            inventory.milk++;
+                            showFloatText(event.clientX, event.clientY, '+1 🥛');
+                        } else if (mesh.userData.type === 'egg') {
+                            inventory.egg++;
+                            showFloatText(event.clientX, event.clientY, '+1 🥚');
+                        } else if (mesh.userData.type === 'golden_egg') {
+                            sfx.buy(); 
+                            inventory.money += 10000;
+                            showFloatText(event.clientX, event.clientY, '+10,000 ฿ 🌟');
+                            showMessage('แจ็คพอตแตก! 🌟', 'คุณเก็บไข่ทองคำได้<br>ได้รับเงินโบนัส <span class="text-yellow-400 font-bold">10,000 ฿</span> ทันที!', '🌟');
+                        }
+                        itemGroup.remove(mesh);
+                        updateUI();
+                        return; 
+                    }
+                }
+
+                if (hasDog && dogGroup) {
+                    const dogIntersects = raycaster.intersectObject(dogGroup, true);
+                    if (dogIntersects.length > 0) {
+                        openDogModal();
+                        return; 
+                    }
+                }
+
+                const envIntersects = raycaster.intersectObject(envGroup, true);
+                if (envIntersects.length > 0) {
+                    let mesh = envIntersects[0].object;
+                    if (mesh.userData && mesh.userData.isShelter) {
+                        openAnimalShopModal(mesh.userData.plotIndex);
+                        return; 
+                    }
+                }
+
+                const intersects = raycaster.intersectObject(ground);
+                if (intersects.length > 0) {
+                    const intersectPoint = intersects[0].point;
+                    const targetX = Math.round(intersectPoint.x);
+                    const targetZ = Math.round(intersectPoint.z);
+
+                    if (targetX >= 0 && targetX < COLS && targetZ >= 0 && targetZ < ROWS) {
+                        let pX = Math.floor(targetX / (PLOT_SIZE + GAP));
+                        let pZ = Math.floor(targetZ / (PLOT_SIZE + GAP));
+                        let localX = targetX % (PLOT_SIZE + GAP);
+                        let localZ = targetZ % (PLOT_SIZE + GAP);
+                        
+                        if (pX >= 0 && pX < PLOTS_X && pZ >= 0 && pZ < PLOTS_Z && localX < PLOT_SIZE && localZ < PLOT_SIZE) {
+                            let plotIndex = (pZ * PLOTS_X) + pX;
+                            openPlotModal(plotIndex, event.clientX, event.clientY);
+                        }
+                    }
+                }
+            }
+        });
+
+        container.addEventListener('pointerleave', () => {
+            isDragging = false;
+        });
+
+        function openPlotModal(plotIndex, clientX = window.innerWidth/2, clientY = window.innerHeight/2) {
+            sfx.click();
+            if (plotIndex === 4) {
+                openSiloModal();
+            } else if (!ownedPlots[plotIndex]) {
+                openBuyPlotModal(plotIndex);
+            } else if (plotIndex >= 6) { 
+                collectPlotItems(plotIndex, clientX, clientY); 
+            } else {
+                openCarSelectModal(plotIndex); 
+            }
+        }
+
+        function collectPlotItems(plotIndex, cx, cy) {
+            let pX = plotIndex % PLOTS_X;
+            let pZ = Math.floor(plotIndex / PLOTS_X);
+            let startX = pX * (PLOT_SIZE + GAP);
+            let endX = startX + PLOT_SIZE;
+            let startZ = pZ * (PLOT_SIZE + GAP);
+            let endZ = startZ + PLOT_SIZE;
+
+            let collectedMilk = 0;
+            let collectedEgg = 0;
+            let collectedGold = 0;
+            let totalGoldMoney = 0;
+
+            for (let i = itemGroup.children.length - 1; i >= 0; i--) {
+                let item = itemGroup.children[i];
+                let ix = item.position.x;
+                let iz = item.position.z;
+
+                if (ix >= startX && ix <= endX && iz >= startZ && iz <= endZ) {
+                    
+                    if(getTotalStorage() >= siloCount * SILO_CAPACITY && item.userData.type !== 'golden_egg') {
+                        continue; 
+                    }
+
+                    if (item.userData.type === 'milk') {
+                        inventory.milk++;
+                        collectedMilk++;
+                    } else if (item.userData.type === 'egg') {
+                        inventory.egg++;
+                        collectedEgg++;
+                    } else if (item.userData.type === 'golden_egg') {
+                        inventory.money += 10000;
+                        collectedGold++;
+                        totalGoldMoney += 10000;
+                    }
+                    
+                    itemGroup.remove(item);
+                }
+            }
+
+            if (collectedMilk > 0 || collectedEgg > 0 || collectedGold > 0) {
+                sfx.collect();
+                updateUI();
+                
+                let msgs = [];
+                if (collectedMilk > 0) msgs.push(`+${collectedMilk} 🥛`);
+                if (collectedEgg > 0) msgs.push(`+${collectedEgg} 🥚`);
+                if (collectedGold > 0) msgs.push(`+${totalGoldMoney.toLocaleString()} ฿ 🌟`);
+                
+                showFloatText(cx, cy, msgs.join(' '));
+
+                if (collectedGold > 0) {
+                    sfx.buy();
+                    showMessage('แจ็คพอตแตก! 🌟', `คุณเก็บผลผลิตชุดใหญ่และได้ไข่ทองคำ! รับเงินโบนัสทันที`, '🌟');
+                }
+            } else if (getTotalStorage() >= siloCount * SILO_CAPACITY) {
+                sfx.error();
+                if(!isStorageFullNotified) {
+                    showMessage('คลังเต็ม!', 'ไม่สามารถเก็บของเพิ่มได้ กรุณาขายของในคลังก่อน', '📦');
+                    isStorageFullNotified = true;
+                }
+            }
+        }
+
+        function openBuyPlotModal(plotIndex) {
+            buyingPlotIndex = plotIndex;
+            document.getElementById('buy-plot-subtitle').innerText = plotNames[plotIndex];
+            document.getElementById('buy-plot-price').innerText = PLOT_PRICES[plotIndex].toLocaleString();
+            
+            const btnBuy = document.getElementById('btn-confirm-buy-plot');
+            if (inventory.money < PLOT_PRICES[plotIndex]) {
+                btnBuy.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-600');
+                btnBuy.classList.remove('bg-green-600', 'hover:bg-green-500');
+                btnBuy.disabled = true;
+            } else {
+                btnBuy.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-600');
+                btnBuy.classList.add('bg-green-600', 'hover:bg-green-500');
+                btnBuy.disabled = false;
+            }
+
+            const modal = document.getElementById('buy-plot-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-95', 'scale-100');
+        }
+
+        function closeBuyPlotModal() {
+            sfx.click();
+            const modal = document.getElementById('buy-plot-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-100', 'scale-95');
+            buyingPlotIndex = null;
+        }
+
+        function confirmBuyPlot() {
+            if(buyingPlotIndex === null) return;
+            const price = PLOT_PRICES[buyingPlotIndex];
+            if(inventory.money >= price) {
+                sfx.buy();
+                inventory.money -= price;
+                ownedPlots[buyingPlotIndex] = true;
+                
+                if (plotFences[buyingPlotIndex]) {
+                    plotFences[buyingPlotIndex].children.forEach(c => {
+                        c.material.color.setHex(0xf8fafc); 
+                    });
+                }
+                
+                updateUI();
+                closeBuyPlotModal();
+                showMessage('ซื้อที่ดินสำเร็จ!', `คุณได้เป็นเจ้าของ <b>${plotNames[buyingPlotIndex]}</b> เรียบร้อยแล้ว!`, '🎉');
+            } else {
+                sfx.error();
+            }
+        }
+
+        function openSiloModal() {
+            document.getElementById('silo-count-display').innerText = siloCount;
+            document.getElementById('silo-capacity-display').innerText = (siloCount * SILO_CAPACITY).toLocaleString();
+            
+            const btnBuy = document.getElementById('btn-buy-silo');
+            if (siloCount >= MAX_SILOS) {
+                btnBuy.classList.add('opacity-50', 'cursor-not-allowed');
+                btnBuy.disabled = true;
+            } else {
+                btnBuy.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnBuy.disabled = false;
+            }
+            
+            const btnDog = document.getElementById('btn-buy-dog');
+            if (hasDog) {
+                btnDog.innerHTML = '<span>✔️ มีน้องหมาแล้ว</span>';
+                btnDog.classList.add('opacity-50', 'cursor-not-allowed');
+                btnDog.disabled = true;
+            }
+
+            const modal = document.getElementById('silo-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-95', 'scale-100');
+        }
+
+        function closeSiloModal() {
+            sfx.click();
+            const modal = document.getElementById('silo-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-100', 'scale-95');
+        }
+
+        function openCarSelectModal(plotIndex) {
+            selectedPlotIndex = plotIndex;
+            let emptyStatus = isPlotEmpty(plotIndex);
+            
+            document.getElementById('car-select-title').innerText = emptyStatus ? '🌱 จัดสรรหุ่นยนต์ (โหมดปลูก)' : '🎯 จัดสรรหุ่นยนต์ (โหมดเกี่ยว)';
+            document.getElementById('car-select-subtitle').innerText = plotNames[plotIndex];
+            
+            const customUI = document.getElementById('car-select-custom-ui');
+            if (emptyStatus) {
+                customUI.innerHTML = `
+                    <div class="mb-3 text-left">
+                        <label class="text-sm text-gray-300 font-bold">เลือกพืชที่จะลงปลูก (ราคาต่อแปลง):</label>
+                        <select id="plant-crop-select" class="w-full bg-gray-700 text-white p-2 rounded-lg mt-1 outline-none border border-gray-600 focus:border-green-500">
+                            <option value="oat">🌾 ข้าวโอ๊ต (ทุน ${SEED_COSTS.oat.toLocaleString()} ฿)</option>
+                            <option value="wheat">🌾 ข้าวสาลี (ทุน ${SEED_COSTS.wheat.toLocaleString()} ฿)</option>
+                            <option value="barley">🌾 ข้าวบาร์เลย์ (ทุน ${SEED_COSTS.barley.toLocaleString()} ฿)</option>
+                            <option value="corn">🌽 ข้าวโพด (ทุน ${SEED_COSTS.corn.toLocaleString()} ฿)</option>
+                            <option value="soybean">🫘 ถั่วเหลือง (ทุน ${SEED_COSTS.soybean.toLocaleString()} ฿)</option>
+                        </select>
+                    </div>
+                `;
+            } else {
+                customUI.innerHTML = ''; 
+            }
+
+            const optionsBox = document.getElementById('car-select-options');
+            optionsBox.innerHTML = '';
+            
+            let idleCounts = { auto_m1: 0, auto_m2: 0, auto_m3: 0, auto_m4: 0, auto_m5: 0 };
+            activeCars.forEach(c => {
+                if (c.assignedPlot === null) idleCounts[c.type]++;
+            });
+
+            let workingHere = activeCars.filter(c => c.assignedPlot === plotIndex);
+            if(workingHere.length > 0) {
+                let statusDiv = document.createElement('div');
+                statusDiv.className = "bg-green-950/60 border border-green-500/40 p-2 rounded-xl text-xs text-left mb-2 text-green-300";
+                let text = "<b>หุ่นยนต์ที่กำลังทำงานแปลงนี้:</b>";
+                workingHere.forEach(c => {
+                    let jobText = c.jobType === 'plant' ? '(ปลูก)' : '(เกี่ยว)';
+                    text += `<div class="mt-0.5">${CAR_TYPES[c.type].icon} ${CAR_TYPES[c.type].name} <span class="text-gray-400 text-[10px]">${jobText}</span></div>`;
+                });
+                statusDiv.innerHTML = text;
+                optionsBox.appendChild(statusDiv);
+            }
+
+            let deployBtnText = emptyStatus ? 'ส่งลงปลูก' : 'ส่งลงเกี่ยว';
+            let deployJobType = emptyStatus ? 'plant' : 'harvest';
+
+            for(let key in CAR_TYPES) {
+                const car = CAR_TYPES[key];
+                const idleCount = idleCounts[key];
+                
+                const opt = document.createElement('div');
+                opt.className = "flex justify-between items-center bg-gray-900 p-2.5 rounded-xl border border-gray-700 text-sm";
+                opt.innerHTML = `
+                    <div class="text-left">
+                        <div class="font-bold text-white">${car.icon} ${car.name}</div>
+                        <div class="text-xs text-gray-400">ในคลังว่าง: <span class="text-yellow-400 font-bold">${idleCount}</span> ตัว</div>
+                    </div>
+                    <button onclick="deployCarToSelectedPlot('${key}', '${deployJobType}')" ${idleCount === 0 ? 'disabled class="bg-gray-700 text-gray-500 text-xs px-3 py-1.5 rounded-lg cursor-not-allowed"' : 'class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition shadow-md"'}>
+                        ${deployBtnText}
+                    </button>
+                `;
+                optionsBox.appendChild(opt);
+            }
+
+            const modal = document.getElementById('car-select-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-95', 'scale-100');
+        }
+
+        function deployCarToSelectedPlot(typeKey, jobType) {
+            let carToDeploy = activeCars.find(c => c.type === typeKey && c.assignedPlot === null);
+            if (carToDeploy) {
+                let targetCropValue = null;
+
+                if (jobType === 'plant') {
+                    targetCropValue = document.getElementById('plant-crop-select').value;
+                    let cost = SEED_COSTS[targetCropValue];
+                    
+                    if (inventory.money < cost) {
+                        sfx.error();
+                        showMessage('เงินไม่พอ!', `คุณต้องการเงิน <span class="text-red-400">${cost.toLocaleString()} ฿</span><br>สำหรับซื้อเมล็ดพันธุ์แปลงนี้`, '❌');
+                        return; 
+                    }
+                    sfx.buy();
+                    inventory.money -= cost;
+                    updateUI();
+                } else {
+                    sfx.click();
+                }
+
+                carToDeploy.assignedPlot = selectedPlotIndex;
+                carToDeploy.jobType = jobType;
+                
+                if (jobType === 'plant') {
+                    carToDeploy.targetCrop = targetCropValue;
+                    if(plotMeshes[selectedPlotIndex]) plotMeshes[selectedPlotIndex].material.color.setHex(0x3e2723); 
+                } else {
+                    carToDeploy.targetCrop = null;
+                    if(plotMeshes[selectedPlotIndex]) plotMeshes[selectedPlotIndex].material.color.setHex(0x79553a); 
+                }
+                
+                let pX = selectedPlotIndex % PLOTS_X;
+                let pZ = Math.floor(selectedPlotIndex / PLOTS_X);
+                let startX = pX * (PLOT_SIZE + GAP);
+                let startZ = pZ * (PLOT_SIZE + GAP);
+
+                carToDeploy.logicalPos = { x: startX, z: startZ };
+                carToDeploy.group.position.set(startX, 0, startZ);
+                carToDeploy.group.visible = true; 
+                carToDeploy.nextStep = null;
+                carToDeploy.targetPos = null;
+
+                closeCarSelect();
+                updateUI();
+            }
+        }
+
+        function unassignPlotCars() {
+            sfx.click();
+            activeCars.forEach(c => {
+                if(c.assignedPlot === selectedPlotIndex) {
+                    c.assignedPlot = null;
+                    c.group.visible = false; 
+                    c.nextStep = null;
+                    c.targetPos = null;
+                }
+            });
+            closeCarSelect();
+            updateUI();
+        }
+
+        function closeCarSelect() {
+            sfx.click();
+            const modal = document.getElementById('car-select-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-100', 'scale-95');
+        }
+
+        // ==========================================
+        // SELLING SYSTEM MODAL (ตลาดกลาง)
+        // ==========================================
+        function openSellModal(type) {
+            sfx.click();
+            if (!isMarketOpen) {
+                sfx.error();
+                showMessage('ตลาดกลางปิดทำการ!', 'โปรดรอจนกว่าจะหมดเวลาพัก 5 นาที หรือรอออเดอร์พิเศษจากพ่อค้า', '🛑');
+                return;
+            }
+
+            currentSellType = type;
+            const amount = inventory[type];
+            if (amount <= 0) {
+                sfx.error();
+                showMessage('คลังว่างเปล่า', `คุณไม่มีผลผลิตนี้เหลือให้ขายเลย`, '⚠️');
+                return;
+            }
+            
+            let icon = '🌾';
+            if(type === 'corn') icon = '🌽';
+            if(type === 'soybean') icon = '🫘';
+            if(type === 'milk') icon = '🥛';
+            if(type === 'egg') icon = '🥚';
+            
+            let nameTH = type === 'oat' ? 'ข้าวโอ๊ต' : type === 'wheat' ? 'ข้าวสาลี' : type === 'barley' ? 'ข้าวบาร์เลย์' : type === 'corn' ? 'ข้าวโพด' : type === 'soybean' ? 'ถั่วเหลือง' : type === 'milk' ? 'นมวัว' : 'ไข่ไก่';
+            
+            document.getElementById('sell-icon').innerText = icon;
+            document.getElementById('sell-crop-name').innerText = nameTH;
+            document.getElementById('sell-unit-price').innerText = PRICES[type].toLocaleString();
+            
+            const maxSell = amount; 
+            document.getElementById('sell-max-amount').innerText = `${maxSell.toLocaleString()} หน่วย`;
+            
+            const input = document.getElementById('sell-amount-input');
+            input.max = maxSell;
+            input.value = maxSell; 
+            
+            updateSellTotal();
+            
+            const modal = document.getElementById('sell-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-95', 'scale-100');
+        }
+
+        function closeSellModal() {
+            sfx.click();
+            const modal = document.getElementById('sell-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-100', 'scale-95');
+            currentSellType = null;
+        }
+
+        function updateSellTotal() {
+            if(!currentSellType) return;
+            const input = document.getElementById('sell-amount-input');
+            let val = parseInt(input.value);
+            if(isNaN(val) || val < 1) val = 1;
+            
+            const maxSell = inventory[currentSellType]; 
+            if(val > maxSell) val = maxSell;
+            
+            input.value = val; 
+            
+            const total = val * PRICES[currentSellType];
+            document.getElementById('sell-total-price').innerText = total.toLocaleString();
+        }
+
+        function confirmSell() {
+            if(!currentSellType || !isMarketOpen) return;
+            const input = document.getElementById('sell-amount-input');
+            let val = parseInt(input.value);
+            
+            const maxSell = inventory[currentSellType]; 
+            if(isNaN(val) || val < 1 || val > maxSell) {
+                sfx.error();
+                return; 
+            }
+            
+            sfx.buy();
+            const profit = val * PRICES[currentSellType];
+            inventory.money += profit;
+            inventory[currentSellType] -= val;
+            
+            let icon = '🌾';
+            if(currentSellType === 'corn') icon = '🌽';
+            if(currentSellType === 'soybean') icon = '🫘';
+            if(currentSellType === 'milk') icon = '🥛';
+            if(currentSellType === 'egg') icon = '🥚';
+            
+            let nameTH = currentSellType === 'oat' ? 'ข้าวโอ๊ต' : currentSellType === 'wheat' ? 'ข้าวสาลี' : currentSellType === 'barley' ? 'ข้าวบาร์เลย์' : currentSellType === 'corn' ? 'ข้าวโพด' : currentSellType === 'soybean' ? 'ถั่วเหลือง' : currentSellType === 'milk' ? 'นมวัว' : 'ไข่ไก่';
+            
+            isMarketOpen = false;
+            marketCooldownTimer = 300;
+            updateMarketUI();
+
+            updateUI();
+            closeSellModal();
+            
+            if (isStorageFullNotified && getTotalStorage() < (siloCount * SILO_CAPACITY)) {
+                showMessage('ขายสำเร็จ พื้นที่ว่างแล้ว!', `คุณขาย ${nameTH} ${val.toLocaleString()} หน่วย ได้เงิน <span class="text-green-400 font-bold">${profit.toLocaleString()} ฿</span><br><br><b>🚨 ตลาดกลางปิดพักทำการ 5 นาที!</b>`, icon);
+            } else {
+                showMessage('ขายสำเร็จ!', `คุณขาย ${nameTH} ${val.toLocaleString()} หน่วย<br>ได้รับเงิน <span class="text-green-400 font-bold">${profit.toLocaleString()} ฿</span><br><br><b>🚨 ตลาดกลางปิดพักทำการ 5 นาที!</b>`, icon);
+            }
+        }
+
+        // ==========================================
+        // MERCHANT ORDER MODAL (พ่อค้า)
+        // ==========================================
+        function openMerchantModal() {
+            sfx.click();
+            if (!isMerchantHere || !currentOrder) {
+                showMessage('พ่อค้ายังมาไม่ถึง', 'โปรดรอให้พ่อค้าเดินทางมาถึงฟาร์มก่อน', '⏳');
+                return;
+            }
+            
+            let cropNameTH = currentOrder.crop === 'oat' ? 'ข้าวโอ๊ต' : currentOrder.crop === 'wheat' ? 'ข้าวสาลี' : currentOrder.crop === 'barley' ? 'ข้าวบาร์เลย์' : currentOrder.crop === 'corn' ? 'ข้าวโพด' : currentOrder.crop === 'soybean' ? 'ถั่วเหลือง' : currentOrder.crop === 'milk' ? 'นมวัว' : 'ไข่ไก่';
+            let icon = '🌾';
+            if(currentOrder.crop === 'corn') icon = '🌽';
+            if(currentOrder.crop === 'soybean') icon = '🫘';
+            if(currentOrder.crop === 'milk') icon = '🥛';
+            if(currentOrder.crop === 'egg') icon = '🥚';
+
+            let playerHas = inventory[currentOrder.crop];
+            let sellAmount = Math.min(playerHas, currentOrder.amount);
+            let earnAmount = sellAmount * currentOrder.pricePerUnit;
+
+            document.getElementById('merchant-order-crop').innerHTML = `${icon} ${cropNameTH}`;
+            document.getElementById('merchant-order-amount').innerText = currentOrder.amount.toLocaleString();
+            document.getElementById('merchant-player-has').innerText = playerHas.toLocaleString();
+            document.getElementById('merchant-order-price').innerText = earnAmount.toLocaleString();
+            
+            const btn = document.getElementById('btn-fulfill-order');
+            if (playerHas > 0) {
+                btn.disabled = false;
+                btn.className = "bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-xl w-full text-md transition shadow-md";
+                btn.innerText = `✅ ขาย ${sellAmount.toLocaleString()} หน่วย`;
+            } else {
+                btn.disabled = true;
+                btn.className = "bg-gray-600 text-gray-400 font-bold py-3 px-4 rounded-xl w-full text-md cursor-not-allowed";
+                btn.innerText = "❌ ไม่มีผลผลิตเลย";
+            }
+
+            const modal = document.getElementById('merchant-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-95', 'scale-100');
+        }
+
+        function closeMerchantModal() {
+            sfx.click();
+            const modal = document.getElementById('merchant-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-100', 'scale-95');
+        }
+
+        function fulfillOrder() {
+            let playerHas = inventory[currentOrder.crop];
+            let sellAmount = Math.min(playerHas, currentOrder.amount);
+            let earnAmount = sellAmount * currentOrder.pricePerUnit;
+
+            if (sellAmount > 0) {
+                sfx.buy();
+                inventory[currentOrder.crop] -= sellAmount;
+                inventory.money += earnAmount;
+                
+                isMerchantHere = false;
+                merchantTimer = 120; 
+                
+                updateUI();
+                closeMerchantModal();
+                updateMerchantUI();
+                
+                showMessage('ส่งมอบออเดอร์สำเร็จ!', `พ่อค้าพอใจมาก! คุณขายไป ${sellAmount.toLocaleString()} หน่วย<br>ได้รับเงิน <span class="text-green-400 font-bold">${earnAmount.toLocaleString()} ฿</span>`, '🎉');
+            } else {
+                sfx.error();
+            }
+        }
+
+        // ==========================================
+        // TREE.JS RENDER LOOP & PRODUCTION
+        // ==========================================
+        const clock = new THREE.Clock();
+
+        function mineBlock(x, z) {
+            if (getTotalStorage() >= siloCount * SILO_CAPACITY) return false;
+
+            const type = boardLogical[z][x];
+            if (type !== 'empty' && growthLogical[z][x] >= 100) {
+                if (type === 'oat') inventory.oat++;
+                if (type === 'wheat') inventory.wheat++;
+                if (type === 'barley') inventory.barley++;
+                if (type === 'corn') inventory.corn++;
+                if (type === 'soybean') inventory.soybean++;
+                
+                boardLogical[z][x] = 'empty';
+                growthLogical[z][x] = 0;
+                
+                const blockToRemove = mineGroup.children.find(m => m.userData.x === x && m.userData.z === z);
+                if (blockToRemove) mineGroup.remove(blockToRemove);
+                
+                updateUI();
+                sfx.harvest();
+                return true;
+            }
+            return false;
+        }
+
+        function plantBlock(x, z, cropType) {
+            if (boardLogical[z][x] === 'empty') {
+                boardLogical[z][x] = cropType;
+                growthLogical[z][x] = 1; 
+                let crop = createCrop(cropType, x, z);
+                crop.scale.set(0.01, 0.01, 0.01); 
+                mineGroup.add(crop);
+                sfx.harvest();
+                return true;
+            }
+            return false;
+        }
+
+        function findNextTargetForCar(car) {
+            if(car.assignedPlot === null) return;
+            
+            if (car.jobType === 'harvest' && getTotalStorage() >= siloCount * SILO_CAPACITY) {
+                car.targetPos = null;
+                return;
+            }
+
+            let pX = car.assignedPlot % PLOTS_X;
+            let pZ = Math.floor(car.assignedPlot / PLOTS_X);
+
+            let startX = pX * (PLOT_SIZE + GAP);
+            let endX = startX + PLOT_SIZE;
+            let startZ = pZ * (PLOT_SIZE + GAP);
+            let endZ = startZ + PLOT_SIZE;
+
+            let closestDist = Infinity;
+            let bestTarget = null;
+
+            for (let z = startZ; z < endZ; z++) {
+                for (let x = startX; x < endX; x++) {
+                    if (car.jobType === 'harvest') {
+                        if (boardLogical[z] && boardLogical[z][x] !== 'empty' && growthLogical[z][x] >= 100) {
+                            let dx = x - car.logicalPos.x;
+                            let dz = z - car.logicalPos.z;
+                            let dist = (dx * dx) + (dz * dz);
+                            if (dist < closestDist) { closestDist = dist; bestTarget = { x, z }; }
+                        }
+                    } else if (car.jobType === 'plant') {
+                        if (boardLogical[z] && boardLogical[z][x] === 'empty') {
+                            let dx = x - car.logicalPos.x;
+                            let dz = z - car.logicalPos.z;
+                            let dist = (dx * dx) + (dz * dz);
+                            if (dist < closestDist) { closestDist = dist; bestTarget = { x, z }; }
+                        }
+                    }
+                }
+            }
+
+            if (bestTarget) {
+                car.targetPos = { x: bestTarget.x, z: bestTarget.z };
+            } else {
+                car.targetPos = null; 
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = Math.min(clock.getDelta(), 0.1);
+
+            if (isFarmActive && !isPaused) {
+                
+                gameTime += delta;
+
+                activeCars.forEach(car => {
+                    if (car.assignedPlot === null) return; 
+
+                    if (car.group.position.y > 0) {
+                        car.group.position.y = Math.max(0, car.group.position.y - delta * 2);
+                    }
+
+                    if (!car.targetPos && !car.nextStep) {
+                        findNextTargetForCar(car);
+                    }
+
+                    if (!car.nextStep && car.targetPos) {
+                        if (car.logicalPos.x !== car.targetPos.x) {
+                            car.nextStep = { x: car.logicalPos.x + Math.sign(car.targetPos.x - car.logicalPos.x), z: car.logicalPos.z };
+                        } else if (car.logicalPos.z !== car.targetPos.z) {
+                            car.nextStep = { x: car.logicalPos.x, z: car.logicalPos.z + Math.sign(car.targetPos.z - car.logicalPos.z) };
+                        } else {
+                            car.targetPos = null; 
+                            
+                            if (car.jobType === 'harvest') {
+                                if (mineBlock(car.logicalPos.x, car.logicalPos.z)) car.group.position.y = 0.15; 
+                            } else if (car.jobType === 'plant') {
+                                if (plantBlock(car.logicalPos.x, car.logicalPos.z, car.targetCrop)) car.group.position.y = 0.15; 
+                            }
+                        }
+
+                        if (car.nextStep) {
+                            if (car.nextStep.x > car.logicalPos.x) car.group.rotation.y = 0;
+                            else if (car.nextStep.x < car.logicalPos.x) car.group.rotation.y = Math.PI;
+                            else if (car.nextStep.z > car.logicalPos.z) car.group.rotation.y = -Math.PI / 2;
+                            else if (car.nextStep.z < car.logicalPos.z) car.group.rotation.y = Math.PI / 2;
+                        }
+                    }
+
+                    if (car.nextStep) {
+                        const stepSpeed = car.speed * delta;
+                        let dx = car.nextStep.x - car.group.position.x;
+                        let dz = car.nextStep.z - car.group.position.z;
+                        let dist = Math.sqrt(dx * dx + dz * dz);
+
+                        if (dist < stepSpeed) {
+                            car.group.position.x = car.nextStep.x;
+                            car.group.position.z = car.nextStep.z;
+                            car.logicalPos.x = car.nextStep.x;
+                            car.logicalPos.z = car.nextStep.z;
+                            
+                            if (car.jobType === 'harvest') {
+                                if (mineBlock(car.logicalPos.x, car.logicalPos.z)) car.group.position.y = 0.15; 
+                            } else if (car.jobType === 'plant') {
+                                if (plantBlock(car.logicalPos.x, car.logicalPos.z, car.targetCrop)) car.group.position.y = 0.15; 
+                            }
+                            car.nextStep = null;
+                        } else {
+                            car.group.position.x += (dx / dist) * stepSpeed;
+                            car.group.position.z += (dz / dist) * stepSpeed;
+                        }
+                        
+                        car.group.children.forEach(child => {
+                            const time = Date.now() * 0.015 * car.speed;
+                            if (child.name === "scissorL") child.rotation.y = -Math.PI / 6 + Math.sin(time) * 0.3;
+                            if (child.name === "scissorR") child.rotation.y = Math.PI / 6 - Math.sin(time) * 0.3;
+                            
+                            if (child.name && child.name.startsWith("leg_R")) {
+                                let offset = child.name === "leg_R2" ? Math.PI : 0;
+                                child.rotation.z = Math.sin(time + offset) * 0.5;
+                            }
+                            if (child.name && child.name.startsWith("leg_L")) {
+                                let offset = child.name === "leg_L2" ? Math.PI : 0;
+                                child.rotation.z = Math.sin(time + offset) * 0.5;
+                            }
+                        });
+                    }
+
+                    if (!car.nextStep) {
+                        car.group.children.forEach(child => {
+                            if (child.name === "scissorL") child.rotation.y = THREE.MathUtils.lerp(child.rotation.y, -Math.PI / 6, 0.1);
+                            if (child.name === "scissorR") child.rotation.y = THREE.MathUtils.lerp(child.rotation.y, Math.PI / 6, 0.1);
+                            if (child.name && child.name.startsWith("leg_")) child.rotation.z = THREE.MathUtils.lerp(child.rotation.z, 0, 0.1);
+                        });
+                    }
+                });
+
+                if (hasDog && dogGroup) {
+                    if (!dogData.targetPos) {
+                        if (Math.random() < 0.01) { 
+                            let minX = 1 * (PLOT_SIZE + GAP) + 2;
+                            let maxX = minX + PLOT_SIZE - 4;
+                            let minZ = 1 * (PLOT_SIZE + GAP) + 2;
+                            let maxZ = minZ + PLOT_SIZE - 4;
+                            
+                            dogData.targetPos = {
+                                x: minX + Math.random() * (maxX - minX),
+                                z: minZ + Math.random() * (maxZ - minZ)
+                            };
+                        }
+                        dogGroup.children.forEach(child => {
+                            if (child.name && child.name.startsWith("dog_leg")) {
+                                child.rotation.x = THREE.MathUtils.lerp(child.rotation.x, 0, 0.1);
+                            }
+                        });
+                    } else {
+                        let dx = dogData.targetPos.x - dogGroup.position.x;
+                        let dz = dogData.targetPos.z - dogGroup.position.z;
+                        let dist = Math.sqrt(dx*dx + dz*dz);
+                        
+                        if (dist < 0.1) {
+                            dogData.targetPos = null; 
+                        } else {
+                            let step = dogData.speed * delta;
+                            if (step > dist) step = dist;
+                            dogGroup.position.x += (dx/dist) * step;
+                            dogGroup.position.z += (dz/dist) * step;
+                            
+                            let targetRotation = Math.atan2(dx, dz);
+                            let currentRotation = dogGroup.rotation.y;
+                            let rotDiff = targetRotation - currentRotation;
+                            while (rotDiff < -Math.PI) rotDiff += Math.PI * 2;
+                            while (rotDiff > Math.PI) rotDiff -= Math.PI * 2;
+                            dogGroup.rotation.y += rotDiff * 0.1;
+                            
+                            const time = Date.now() * 0.015;
+                            dogGroup.children.forEach(child => {
+                                if(child.name === "dog_leg_fl" || child.name === "dog_leg_br") {
+                                    child.rotation.x = Math.sin(time) * 0.4;
+                                } else if(child.name === "dog_leg_fr" || child.name === "dog_leg_bl") {
+                                    child.rotation.x = Math.sin(time + Math.PI) * 0.4;
+                                }
+                            });
+                        }
+                    }
+                }
+
+                farmAnimals.forEach(a => {
+                    if (!a.targetPos) {
+                        if (Math.random() < 0.02) {
+                            let pX = a.plotIndex % PLOTS_X;
+                            let pZ = Math.floor(a.plotIndex / PLOTS_X);
+                            let cx = pX * (PLOT_SIZE + GAP) + (PLOT_SIZE / 2);
+                            let minX = pX * (PLOT_SIZE + GAP) + 2;
+                            let maxX = minX + PLOT_SIZE - 4;
+                            let minZ = pZ * (PLOT_SIZE + GAP) + 2;
+                            let maxZ = minZ + PLOT_SIZE - 4;
+                            
+                            if (a.type === 'chicken') {
+                                maxX = cx - 1.5; 
+                            } else if (a.type === 'cow') {
+                                minX = cx + 1.5;
+                            }
+                            
+                            a.targetPos = {
+                                x: minX + Math.random() * (maxX - minX),
+                                z: minZ + Math.random() * (maxZ - minZ)
+                            };
+                        }
+                        a.group.children.forEach(child => {
+                            if (child.name && child.name.startsWith("leg")) {
+                                child.rotation.x = THREE.MathUtils.lerp(child.rotation.x, 0, 0.1);
+                            }
+                        });
+                    } else {
+                        let dx = a.targetPos.x - a.group.position.x;
+                        let dz = a.targetPos.z - a.group.position.z;
+                        let dist = Math.sqrt(dx*dx + dz*dz);
+                        
+                        if (dist < 0.1) {
+                            a.targetPos = null; 
+                        } else {
+                            let step = a.speed * delta;
+                            if (step > dist) step = dist;
+                            a.group.position.x += (dx/dist) * step;
+                            a.group.position.z += (dz/dist) * step;
+                            
+                            let targetRotation = Math.atan2(dx, dz);
+                            let currentRotation = a.group.rotation.y;
+                            let rotDiff = targetRotation - currentRotation;
+                            while (rotDiff < -Math.PI) rotDiff += Math.PI * 2;
+                            while (rotDiff > Math.PI) rotDiff -= Math.PI * 2;
+                            a.group.rotation.y += rotDiff * 0.1;
+                            
+                            const time = Date.now() * 0.015 * (a.type === 'chicken' ? 2 : 1);
+                            a.group.children.forEach(child => {
+                                if(child.name === "leg1" || child.name === "leg4") {
+                                    child.rotation.x = Math.sin(time) * 0.3;
+                                } else if(child.name === "leg2" || child.name === "leg3") {
+                                    child.rotation.x = Math.sin(time + Math.PI) * 0.3;
+                                }
+                            });
+                        }
+                    }
+                });
+                
+                for (let i = itemGroup.children.length - 1; i >= 0; i--) {
+                    let item = itemGroup.children[i];
+                    item.rotation.y += delta;
+                    if (item.userData && item.userData.life !== undefined) {
+                        item.userData.life -= delta;
+                        if (item.userData.life <= 2) {
+                            let s = Math.max(0.001, item.userData.life / 2);
+                            item.scale.set(s, s, s);
+                        }
+                        if (item.userData.life <= 0) {
+                            itemGroup.remove(item);
+                        }
+                    }
+                }
+            }
+
+            if (!isInMenu) {
+                camera.lookAt(camera.position.x, 0, camera.position.z - 15);
+                renderer.render(scene, camera);
+                
+                const w = window.innerWidth;
+                const h = window.innerHeight;
+                for(let z=0; z<ROWS; z++){
+                    for(let x=0; x<COLS; x++){
+                        let label = labelGrid[z][x];
+                        
+                        if(isShowCropPercentage && boardLogical[z][x] !== 'empty' && growthLogical[z][x] < 100) {
+                            if(!label) {
+                                label = document.createElement('div');
+                                label.className = 'absolute top-0 left-0 text-[10px] font-bold text-white bg-black/60 px-1 rounded transition-none pointer-events-none origin-center';
+                                document.getElementById('labels-container').appendChild(label);
+                                labelGrid[z][x] = label;
+                                label._currentText = ''; 
+                                label._currentDisplay = ''; 
+                            }
+                            
+                            let newText = growthLogical[z][x] + '%';
+                            if (label._currentText !== newText) {
+                                label.innerText = newText;
+                                label._currentText = newText;
+                            }
+                            
+                            let pos = new THREE.Vector3(x, 1.2, z);
+                            pos.project(camera);
+                            
+                            if(pos.z < 1) { 
+                                let screenX = (pos.x * .5 + .5) * w;
+                                let screenY = (pos.y * -.5 + .5) * h;
+                                label.style.transform = `translate3d(calc(${screenX}px - 50%), calc(${screenY}px - 50%), 0)`;
+                                
+                                if(label._currentDisplay !== 'block') {
+                                    label.style.display = 'block';
+                                    label._currentDisplay = 'block';
+                                }
+                            } else {
+                                if(label._currentDisplay !== 'none') {
+                                    label.style.display = 'none';
+                                    label._currentDisplay = 'none';
+                                }
+                            }
+                        } else {
+                            if(label && label._currentDisplay !== 'none') {
+                                label.style.display = 'none';
+                                label._currentDisplay = 'none';
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function updateUI() {
+            const hudNameEl = document.getElementById('hud-player-name');
+            if(hudNameEl) hudNameEl.innerText = playerName;
+
+            let currentTotal = getTotalStorage();
+            let maxCapacity = siloCount * SILO_CAPACITY;
+
+            document.getElementById('menu-money').innerText = inventory.money.toLocaleString();
+            document.getElementById('stat-money').innerText = inventory.money.toLocaleString();
+            
+            document.getElementById('stat-oat').innerText = inventory.oat.toLocaleString();
+            document.getElementById('stat-wheat').innerText = inventory.wheat.toLocaleString();
+            document.getElementById('stat-barley').innerText = inventory.barley.toLocaleString();
+            document.getElementById('stat-corn').innerText = inventory.corn.toLocaleString();
+            document.getElementById('stat-soybean').innerText = inventory.soybean.toLocaleString();
+            document.getElementById('stat-milk').innerText = inventory.milk.toLocaleString();
+            document.getElementById('stat-egg').innerText = inventory.egg.toLocaleString();
+            
+            document.getElementById('hud-money').innerText = inventory.money.toLocaleString();
+            document.getElementById('hud-oat').innerText = inventory.oat.toLocaleString();
+            document.getElementById('hud-wheat').innerText = inventory.wheat.toLocaleString();
+            document.getElementById('hud-barley').innerText = inventory.barley.toLocaleString();
+            document.getElementById('hud-corn').innerText = inventory.corn.toLocaleString();
+            document.getElementById('hud-soybean').innerText = inventory.soybean.toLocaleString();
+            document.getElementById('hud-milk').innerText = inventory.milk.toLocaleString();
+            document.getElementById('hud-egg').innerText = inventory.egg.toLocaleString();
+            
+            const storageContainer = document.getElementById('hud-storage-container');
+            
+            if (currentTotal >= maxCapacity) {
+                storageContainer.classList.add('bg-red-900/80', 'border-red-500', 'animate-pulse', 'text-white');
+                storageContainer.classList.remove('bg-blue-900/60', 'border-blue-500', 'text-blue-200');
+                storageContainer.innerHTML = `⚠️ พื้นที่เก็บเต็ม! <span id="hud-storage">${currentTotal.toLocaleString()}</span> / <span id="hud-max-storage">${maxCapacity.toLocaleString()}</span>`;
+                
+                if (!isStorageFullNotified && isFarmActive) {
+                    sfx.error();
+                    showMessage('โรงนาเต็มแล้ว!', 'หุ่นยนต์หยุดทำงานชั่วคราว<br>กรุณา <b>ขายผลผลิต</b> หรือ <b>ซื้อที่เก็บเพิ่ม</b> เพื่อทำงานต่อ!', '🛑');
+                    isStorageFullNotified = true;
+                }
+            } else {
+                storageContainer.classList.remove('bg-red-900/80', 'border-red-500', 'animate-pulse', 'text-white');
+                storageContainer.classList.add('bg-blue-900/60', 'border-blue-500', 'text-blue-200');
+                storageContainer.innerHTML = `📦 <span id="hud-storage">${currentTotal.toLocaleString()}</span>/<span id="hud-max-storage">${maxCapacity.toLocaleString()}</span>`;
+                
+                isStorageFullNotified = false;
+            }
+            
+            for(let key in ownedCars) {
+                const badge = document.getElementById(`count-${key}`);
+                if (badge) badge.innerText = ownedCars[key].toLocaleString();
+            }
+        }
+
+        const modal = document.getElementById('message-modal');
+        const modalContent = document.getElementById('message-content');
+        
+        let messageTimeout = null;
+
+        function showMessage(title, text, icon = '💬', autoCloseMs = 3000) {
+            if(messageTimeout) {
+                clearTimeout(messageTimeout);
+                messageTimeout = null;
+            }
+
+            document.getElementById('message-title').innerText = title;
+            document.getElementById('message-text').innerHTML = text;
+            document.getElementById('message-icon').innerText = icon;
+            
+            modal.classList.remove('opacity-0');
+            modalContent.classList.replace('scale-95', 'scale-100');
+
+            if(autoCloseMs > 0) {
+                messageTimeout = setTimeout(() => {
+                    closeMessage(true);
+                }, autoCloseMs);
+            }
+        }
+
+        function closeMessage(isAuto = false) {
+            if(!isAuto && typeof sfx !== 'undefined') sfx.click();
+            
+            modal.classList.add('opacity-0');
+            modalContent.classList.replace('scale-100', 'scale-95');
+        }
+
+        window.addEventListener('resize', () => {
+            if(isInMenu) return;
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            renderer.setSize(width, height);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+        });
+
+        // initial execution
+        animate();
+    </script>
+</body>
+</html>
