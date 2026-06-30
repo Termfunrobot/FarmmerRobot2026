@@ -120,6 +120,17 @@
             <button id="btn-login" onclick="handleLogin()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-xl text-xl transition shadow-md mb-3">
                 เข้าสู่ระบบ / โหลดเซฟ
             </button>
+            
+            <button id="btn-google-login" onclick="handleGoogleLogin()" class="w-full bg-white hover:bg-gray-100 text-gray-900 font-bold py-3 px-4 rounded-xl text-xl transition shadow-md mb-3 flex items-center justify-center gap-3">
+                <svg class="w-6 h-6" viewBox="0 0 48 48">
+                    <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+                    <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+                    <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+                    <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+                </svg>
+                เข้าสู่ระบบด้วย Google
+            </button>
+
             <button id="btn-register" onclick="handleRegister()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl text-xl transition shadow-md mb-4 hidden">
                 สมัครสมาชิก
             </button>
@@ -204,7 +215,7 @@
         </div>
 
         <div id="hud-storage-container" class="text-blue-200 font-bold drop-shadow-md bg-blue-900/60 px-3 py-1 rounded-full border-2 border-blue-500 transition-all duration-300 flex items-center gap-1 shrink-0">
-            📦 <span id="hud-storage">0</span>/<span id="hud-max-storage">1000</span>
+            📦 <span id="hud-storage">0</span>/<span id="hud-max-storage">500</span>
         </div>
 
         <div class="text-green-400 font-bold drop-shadow-md shrink-0">฿ <span id="hud-money">0</span></div>
@@ -262,19 +273,54 @@
                 </div>
             </div>
 
-            <h2 class="text-xl font-semibold mb-3 text-white border-b border-gray-600 pb-2">🛒 จ้างแรงงาน & หุ่นยนต์</h2>
+            <h2 class="text-xl font-semibold mb-3 text-white border-b border-gray-600 pb-2">🛒 โชว์รูมหุ่นยนต์ออโต้</h2>
             <div class="grid grid-cols-1 gap-2 mb-4">
-                <button onclick="buyCar('worker_1')" class="bg-gray-900 border border-gray-700 hover:border-blue-500 rounded-xl p-2 transition w-full">
+                <button onclick="buyCar('auto_m1')" class="bg-gray-900 border border-gray-700 hover:border-gray-400 rounded-xl p-2 transition w-full">
                     <div class="flex justify-between items-center px-1">
                         <div class="flex items-center gap-3">
-                            <span class="text-3xl">👨‍🌾</span>
+                            <span class="text-3xl">🚜</span>
                             <div class="text-left">
-                                <span class="text-[12px] font-bold text-white block">คนงานชาวสวน</span>
-                                <span class="text-[12px] text-gray-400 block">ทำงานจบแปลงแล้วกลับ</span>
-                                <span class="text-[12px] text-green-400 block font-semibold">1,000 ฿ / รอบ</span>
+                                <span class="text-[12px] font-bold text-white block">รุ่นเริ่มต้น</span>
+                                <span class="text-[12px] text-green-400 block font-semibold">10,000 ฿</span>
                             </div>
                         </div>
-                        <span class="text-xs bg-gray-700 text-white px-2 py-1 rounded-full border border-gray-500">มี <span id="count-worker_1" class="text-blue-400 font-bold">0</span></span>
+                        <span class="text-xs bg-gray-700 text-white px-2 py-1 rounded-full border border-gray-500">มี <span id="count-auto_m1" class="text-gray-300 font-bold">0</span></span>
+                    </div>
+                </button>
+                <button onclick="buyCar('auto_m2')" class="bg-gray-900 border border-gray-700 hover:border-yellow-500 rounded-xl p-2 transition w-full">
+                    <div class="flex justify-between items-center px-1">
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl">🤖</span>
+                            <div class="text-left">
+                                <span class="text-[12px] font-bold text-white block">รุ่นมาตรฐาน</span>
+                                <span class="text-[12px] text-green-400 block font-semibold">20,000 ฿</span>
+                            </div>
+                        </div>
+                        <span class="text-xs bg-gray-700 text-white px-2 py-1 rounded-full border border-gray-500">มี <span id="count-auto_m2" class="text-yellow-400 font-bold">0</span></span>
+                    </div>
+                </button>
+                <button onclick="buyCar('auto_m3')" class="bg-gray-900 border border-gray-700 hover:border-green-500 rounded-xl p-2 transition w-full">
+                    <div class="flex justify-between items-center px-1">
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl">🚙</span>
+                            <div class="text-left">
+                                <span class="text-[12px] font-bold text-white block">รุ่นความเร็วสูง</span>
+                                <span class="text-[12px] text-green-400 block font-semibold">30,000 ฿</span>
+                            </div>
+                        </div>
+                        <span class="text-xs bg-gray-700 text-white px-2 py-1 rounded-full border border-gray-500">มี <span id="count-auto_m3" class="text-green-400 font-bold">0</span></span>
+                    </div>
+                </button>
+                <button onclick="buyCar('auto_m4')" class="bg-gray-900 border border-gray-700 hover:border-blue-500 rounded-xl p-2 transition w-full">
+                    <div class="flex justify-between items-center px-1">
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl">🏎️</span>
+                            <div class="text-left">
+                                <span class="text-[12px] font-bold text-white block">รุ่นซุปเปอร์สปีด</span>
+                                <span class="text-[12px] text-green-400 block font-semibold">45,000 ฿</span>
+                            </div>
+                        </div>
+                        <span class="text-xs bg-gray-700 text-white px-2 py-1 rounded-full border border-gray-500">มี <span id="count-auto_m4" class="text-blue-400 font-bold">0</span></span>
                     </div>
                 </button>
                 <button onclick="buyCar('auto_m5')" class="bg-gray-900 border border-gray-700 hover:border-red-500 rounded-xl p-2 transition w-full">
@@ -282,9 +328,8 @@
                         <div class="flex items-center gap-3">
                             <span class="text-3xl">🚀</span>
                             <div class="text-left">
-                                <span class="text-[12px] font-bold text-white block">หุ่นยนต์อัลตร้าเทอร์โบ</span>
-                                <span class="text-[12px] text-gray-400 block">ถาวรตลอดชีพ</span>
-                                <span class="text-[12px] text-green-400 block font-semibold">6,000,000 ฿</span>
+                                <span class="text-[12px] font-bold text-white block">รุ่นอัลตร้าเทอร์โบ</span>
+                                <span class="text-[12px] text-green-400 block font-semibold">60,000 ฿</span>
                             </div>
                         </div>
                         <span class="text-xs bg-gray-700 text-white px-2 py-1 rounded-full border border-gray-500">มี <span id="count-auto_m5" class="text-red-400 font-bold">0</span></span>
@@ -296,39 +341,29 @@
                 <span>💰 ตลาดกลาง</span>
                 <span id="market-status-text" class="text-[11px] text-green-400 bg-gray-900 px-2 py-0.5 rounded-full border border-gray-700">(เปิด)</span>
             </h2>
-            <div class="grid grid-cols-1 gap-1 mb-2 pr-1">
+            <div class="grid grid-cols-1 gap-1 mb-6 pr-1">
                 <button onclick="openSellModal('oat')" class="market-sell-btn bg-yellow-700 hover:bg-yellow-600 text-white py-1.5 px-3 rounded-lg transition shadow text-xs flex justify-between items-center group">
-                    <span>ขาย ข้าวโอ๊ต</span> <span class="text-green-300">30 ฿</span>
+                    <span>ขาย ข้าวโอ๊ต</span> <span class="text-green-300">15 ฿</span>
                 </button>
                 <button onclick="openSellModal('wheat')" class="market-sell-btn bg-yellow-600 hover:bg-yellow-500 text-white py-1.5 px-3 rounded-lg transition shadow text-xs flex justify-between items-center group">
-                    <span>ขาย ข้าวสาลี</span> <span class="text-green-200">35 ฿</span>
+                    <span>ขาย ข้าวสาลี</span> <span class="text-green-200">20 ฿</span>
                 </button>
                 <button onclick="openSellModal('barley')" class="market-sell-btn bg-orange-600 hover:bg-orange-500 text-white py-1.5 px-3 rounded-lg transition shadow text-xs flex justify-between items-center group">
-                    <span>ขาย บาร์เลย์</span> <span class="text-green-200">36 ฿</span>
+                    <span>ขาย บาร์เลย์</span> <span class="text-green-200">30 ฿</span>
                 </button>
                 <button onclick="openSellModal('corn')" class="market-sell-btn bg-yellow-500 hover:bg-yellow-400 text-white py-1.5 px-3 rounded-lg transition shadow text-xs flex justify-between items-center group font-semibold text-gray-900">
                     <span>ขาย ข้าวโพด</span> <span>45 ฿</span>
                 </button>
                 <button onclick="openSellModal('soybean')" class="market-sell-btn bg-green-600 hover:bg-green-500 text-white py-1.5 px-3 rounded-lg transition shadow text-xs flex justify-between items-center group">
-                    <span>ขาย ถั่วเหลือง</span> <span class="text-green-200">80 ฿</span>
+                    <span>ขาย ถั่วเหลือง</span> <span class="text-green-200">60 ฿</span>
                 </button>
                 <button onclick="openSellModal('milk')" class="market-sell-btn bg-gray-300 hover:bg-gray-100 text-gray-900 py-1.5 px-3 rounded-lg transition shadow text-xs flex justify-between items-center group font-bold">
-                    <span>ขาย นมวัว</span> <span class="text-green-700">100 ฿</span>
+                    <span>ขาย นมวัว</span> <span class="text-green-700">500 ฿</span>
                 </button>
                 <button onclick="openSellModal('egg')" class="market-sell-btn bg-orange-200 hover:bg-orange-100 text-orange-900 py-1.5 px-3 rounded-lg transition shadow text-xs flex justify-between items-center group font-bold">
-                    <span>ขาย ไข่ไก่</span> <span class="text-green-700">30 ฿</span>
+                    <span>ขาย ไข่ไก่</span> <span class="text-green-700">15 ฿</span>
                 </button>
             </div>
-
-            <h2 class="text-xl font-semibold mt-4 mb-2 text-white border-b border-gray-600 pb-1">
-                🎟️ แลกแต้มข้ามเกมส์
-            </h2>
-            <div class="mb-4 pr-1">
-                <button onclick="openExchangeModal()" class="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white font-bold py-3 px-4 rounded-xl transition shadow-lg flex justify-between items-center border-2 border-purple-400">
-                    <span>แปลงเงินฟาร์ม ➡️ แต้ม KidLearning</span>
-                </button>
-            </div>
-
         </div>
         
         <div class="mt-auto pt-4 border-t border-gray-600 flex gap-2 shrink-0">
@@ -341,52 +376,6 @@
             <button onclick="togglePanel()" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 px-1 rounded-lg transition shadow font-bold flex items-center justify-center gap-1 text-xs">
                 ❌ ปิด
             </button>
-        </div>
-    </div>
-
-    <div id="exchange-modal" class="fixed inset-0 bg-black/80 flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 z-[100]">
-        <div class="bg-gray-800 border-2 border-purple-500 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform duration-300">
-            <div class="text-5xl mb-2">🎟️</div>
-            <h3 class="text-2xl font-bold text-white mb-1">แลกแต้ม KidLearning</h3>
-            <p class="text-gray-300 mb-4 text-sm">เปลี่ยนเงินในฟาร์ม เป็นคูปองแต้มสะสม</p>
-            
-            <div class="bg-gray-900 border border-gray-700 p-4 rounded-xl mb-5 text-left">
-                <div class="flex justify-between items-center mb-2 text-sm border-b border-gray-700 pb-2">
-                    <span class="text-gray-400">เรทแลกเปลี่ยน:</span>
-                    <span class="font-bold text-yellow-400">10,000 ฿ = 100 แต้ม</span>
-                </div>
-                <div class="mt-3">
-                    <label class="text-sm text-gray-400 block mb-1">เลือกจำนวนเงินฟาร์มที่ต้องการแลก:</label>
-                    <select id="exchange-amount" class="w-full bg-gray-800 text-white border border-gray-600 rounded-lg p-3 text-lg font-bold outline-none focus:border-purple-500">
-                        <option value="10000">10,000 ฿ ➡️ 100 แต้ม</option>
-                        <option value="50000">50,000 ฿ ➡️ 500 แต้ม</option>
-                        <option value="100000">100,000 ฿ ➡️ 1,000 แต้ม</option>
-                        <option value="500000">500,000 ฿ ➡️ 5,000 แต้ม</option>
-                        <option value="1000000">1,000,000 ฿ ➡️ 10,000 แต้ม</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="flex gap-2 mt-5">
-                <button id="btn-confirm-exchange" onclick="confirmExchange()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 px-4 rounded-xl flex-1 text-sm transition shadow-md">✨ สร้างคูปอง</button>
-                <button onclick="closeExchangeModal()" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2.5 px-4 rounded-xl flex-1 text-sm transition shadow-md">ยกเลิก</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="coupon-success-modal" class="fixed inset-0 bg-black/90 flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 z-[110]">
-        <div class="bg-gradient-to-br from-purple-900 to-indigo-900 border-4 border-yellow-400 rounded-3xl p-8 max-w-sm w-full text-center shadow-[0_0_50px_rgba(250,204,21,0.5)] transform scale-95 transition-transform duration-300">
-            <h3 class="text-3xl font-black text-yellow-400 mb-2 drop-shadow-md">สร้างคูปองสำเร็จ!</h3>
-            <p class="text-white mb-6">นำรหัสนี้ไปกรอกในระบบ KidLearning</p>
-            
-            <div class="bg-black/50 p-4 rounded-2xl mb-6 border border-white/20 relative">
-                <div id="generated-coupon-code" class="text-4xl font-mono font-black text-green-400 tracking-widest break-all">FARM-XXXX</div>
-                <button onclick="copyCouponCode()" class="mt-4 bg-white/20 hover:bg-white/30 text-white py-2 px-4 rounded-lg text-sm transition">📋 คัดลอกรหัส</button>
-            </div>
-
-            <p class="text-red-400 text-xs font-bold mb-6">* รหัสนี้ใช้ได้เพียง 1 ครั้งเท่านั้น ห้ามให้คนอื่นเด็ดขาด!</p>
-            
-            <button onclick="closeCouponSuccessModal()" class="bg-yellow-500 hover:bg-yellow-400 text-black font-black py-3 px-8 rounded-full w-full text-xl transition shadow-lg">ปิดหน้าต่าง</button>
         </div>
     </div>
 
@@ -481,10 +470,11 @@
         <div class="bg-gray-800 border border-gray-600 rounded-2xl p-6 max-w-md w-full text-left shadow-2xl transform scale-95 transition-transform duration-300">
             <h3 class="text-3xl font-bold text-yellow-400 mb-4 text-center">📖 คำแนะนำการเล่น</h3>
             <ul class="text-white space-y-3 mb-6 text-sm">
-                <li class="flex gap-2"><span>1.</span> <span><b>เพาะปลูก:</b> ส่งคนงานหรือหุ่นยนต์ไปปลูกและเก็บเกี่ยวพืชในแปลงด้านบน</span></li>
-                <li class="flex gap-2"><span>2.</span> <span><b>คนงานชาวสวน:</b> ทำงานจบหนึ่งแปลง (ปลูกเสร็จหรือเกี่ยวเสร็จ) จะสิ้นสุดสัญญาทันที ต้องจ้างใหม่</span></li>
-                <li class="flex gap-2"><span>3.</span> <span><b>ปศุสัตว์:</b> แปลงด้านล่าง 3 แปลงใช้สำหรับเลี้ยงสัตว์ ซื้อไก่หรือวัวโดย <b>คลิกที่โรงเรือน</b> สัตว์จะดรอปผลผลิตบนพื้น ให้ <b>คลิกที่สนามหญ้า</b> เพื่อเก็บไข่และนมรวดเดียวทั้งแปลง!</span></li>
+                <li class="flex gap-2"><span>1.</span> <span><b>เพาะปลูก:</b> ส่งหุ่นยนต์ไปปลูกและเก็บเกี่ยวพืชในแปลงด้านบน</span></li>
+                <li class="flex gap-2"><span>2.</span> <span><b>ปศุสัตว์:</b> แปลงด้านล่าง 3 แปลงใช้สำหรับเลี้ยงสัตว์ ซื้อไก่หรือวัวได้ สัตว์จะดรอปผลผลิตบนพื้น ให้ <b>คลิกเพื่อเก็บ</b> นมและไข่ (ไก่มีโอกาสสุ่มได้ไข่ทองคำ 10,000 ฿ ด้วยนะ!)</span></li>
+                <li class="flex gap-2"><span>3.</span> <span><b>ซูมจอ:</b> ใช้ลูกกลิ้งเมาส์ (Mouse Wheel) เพื่อซูมเข้าและซูมออกดูฟาร์มได้ชัดเจนขึ้น!</span></li>
                 <li class="flex gap-2"><span>4.</span> <span><b>ขยายอาณาจักร:</b> แปลงที่มีรั้วสีเทา 🔒 คือแปลงที่ยังไม่ได้ซื้อ คลิกเพื่อใช้เงินปลดล็อคกรรมสิทธิ์</span></li>
+                <li class="flex gap-2"><span>5.</span> <span><b>ตลาดกลาง:</b> ขายผลผลิตได้ไม่มีขีดจำกัด และตลาดจะพัก 5 นาทีหลังการขาย</span></li>
                 <li class="flex gap-2 text-yellow-300"><span>⭐</span> <span><b>พ่อค้ารับซื้อ:</b> พ่อค้าจะขับรถมารับซื้อผลผลิตทุกๆ 2 นาที ให้ราคาดี 120%!</span></li>
             </ul>
             <button onclick="closeHowToPlay()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl w-full text-lg transition shadow-md">เข้าใจแล้ว ลุยเลย!</button>
@@ -493,7 +483,7 @@
 
     <div id="car-select-modal" class="fixed inset-0 bg-black/80 flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 z-[100]">
         <div class="bg-gray-800 border border-gray-600 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform duration-300">
-            <h3 id="car-select-title" class="text-2xl font-bold text-white mb-1">🎯 จัดสรรแรงงาน/หุ่นยนต์</h3>
+            <h3 id="car-select-title" class="text-2xl font-bold text-white mb-1">🎯 จัดสรรหุ่นยนต์ออโต้</h3>
             <p id="car-select-subtitle" class="text-yellow-400 font-bold mb-2 text-lg">แปลงที่ X</p>
             
             <div id="car-select-custom-ui" class="mb-4"></div>
@@ -501,7 +491,7 @@
             <div id="car-select-options" class="space-y-2 max-h-[30vh] overflow-y-auto pr-1"></div>
             
             <div class="flex gap-2 mt-5">
-                <button onclick="unassignPlotCars()" class="bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 px-4 rounded-xl flex-1 text-sm transition shadow-md">ถอนแรงงานกลับ</button>
+                <button onclick="unassignPlotCars()" class="bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 px-4 rounded-xl flex-1 text-sm transition shadow-md">ถอนหุ่นยนต์กลับ</button>
                 <button onclick="closeCarSelect()" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2.5 px-4 rounded-xl flex-1 text-sm transition shadow-md">ยกเลิก</button>
             </div>
         </div>
@@ -668,16 +658,13 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // URL ดาต้าเบสของ KidLearning เพื่อส่งคูปองข้ามระบบ
-        const KIDLEARNING_DB_URL = "https://tess-71c84-default-rtdb.asia-southeast1.firebasedatabase.app";
-
         let isLoginMode = true;
         let currentUser = null;
         let playerName = "ชาวนามือใหม่"; 
 
         function generateRandomName() {
             try {
-                if(audioCtx && !isSfxMuted) sfx.click();
+                if(audioCtx && typeof isSfxMuted !== 'undefined' && !isSfxMuted) sfx.click();
             } catch(e){}
             
             const adjectives = ["ซิ่ง", "รวย", "ขยัน", "สายชิล", "มหาเศรษฐี", "สุดหล่อ", "อินดี้", "นำโชค", "เทพ", "สุดปัง", "สายฮา"];
@@ -694,6 +681,7 @@
             isLoginMode = !isLoginMode;
             document.getElementById('auth-title').innerText = isLoginMode ? "เข้าสู่ระบบ" : "สมัครสมาชิกฟาร์มใหม่";
             document.getElementById('btn-login').classList.toggle('hidden', !isLoginMode);
+            document.getElementById('btn-google-login').classList.toggle('hidden', !isLoginMode);
             document.getElementById('btn-register').classList.toggle('hidden', isLoginMode);
             document.getElementById('auth-switch-text').innerText = isLoginMode ? "ยังไม่มีบัญชีใช่ไหม? สมัครสมาชิก" : "มีบัญชีอยู่แล้ว? เข้าสู่ระบบ";
             document.getElementById('auth-error').classList.add('hidden');
@@ -749,6 +737,28 @@
                 });
         }
 
+        // ฟังก์ชันเข้าสู่ระบบด้วย Google
+        function handleGoogleLogin() {
+            try { if(audioCtx && typeof isSfxMuted !== 'undefined' && !isSfxMuted) sfx.click(); } catch(e){}
+            
+            const provider = new firebase.auth.GoogleAuthProvider();
+            const errorEl = document.getElementById('auth-error');
+
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    if (result.user.displayName) {
+                        playerName = result.user.displayName;
+                    } else {
+                        playerName = "ชาวนานิรนาม_" + Math.floor(Math.random() * 1000);
+                    }
+                    saveGameData(result.user.uid);
+                })
+                .catch((error) => {
+                    errorEl.innerText = "เกิดข้อผิดพลาดในการเข้าสู่ระบบด้วย Google: " + error.message;
+                    errorEl.classList.remove('hidden');
+                });
+        }
+
         function handleLogout() {
             const savePromise = saveGameData() || Promise.resolve(); 
             
@@ -786,90 +796,6 @@
         });
 
         // ==========================================
-        // PROMO CODE EXCHANGE SYSTEM (Export Money)
-        // ==========================================
-        function openExchangeModal() {
-            sfx.click();
-            const modal = document.getElementById('exchange-modal');
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            modal.children[0].classList.replace('scale-95', 'scale-100');
-        }
-
-        function closeExchangeModal() {
-            sfx.click();
-            const modal = document.getElementById('exchange-modal');
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            modal.children[0].classList.replace('scale-100', 'scale-95');
-        }
-
-        async function confirmExchange() {
-            const cost = parseInt(document.getElementById('exchange-amount').value);
-            const pointsReward = cost / 100; 
-
-            if (inventory.money < cost) {
-                sfx.error();
-                showMessage('เงินฟาร์มไม่พอ!', `คุณมีเงินไม่พอแลกคูปอง ขาดอีก ${(cost - inventory.money).toLocaleString()} ฿`, '❌');
-                return;
-            }
-
-            inventory.money -= cost;
-            sfx.buy();
-            updateUI();
-            saveGameData(); 
-
-            const btnConfirm = document.getElementById('btn-confirm-exchange');
-            btnConfirm.innerText = "กำลังสร้างคูปอง...";
-            btnConfirm.disabled = true;
-
-            const code = 'FARM-' + Math.random().toString(36).substr(2, 6).toUpperCase();
-
-            try {
-                await fetch(`${KIDLEARNING_DB_URL}/promoCodes/${code}.json`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        code: code,
-                        points: pointsReward,
-                        isUsed: false,
-                        createdAt: Date.now(),
-                        source: 'FarmTycoon'
-                    })
-                });
-
-                closeExchangeModal();
-                
-                document.getElementById('generated-coupon-code').innerText = code;
-                const successModal = document.getElementById('coupon-success-modal');
-                successModal.classList.remove('opacity-0', 'pointer-events-none');
-                successModal.children[0].classList.replace('scale-95', 'scale-100');
-
-            } catch (err) {
-                sfx.error();
-                inventory.money += cost; 
-                updateUI();
-                showMessage('เชื่อมต่อระบบล้มเหลว', 'ไม่สามารถสร้างคูปองได้ คืนเงินในฟาร์มให้แล้วครับ', '⚠️');
-            } finally {
-                btnConfirm.innerText = "✨ สร้างคูปอง";
-                btnConfirm.disabled = false;
-            }
-        }
-
-        function copyCouponCode() {
-            sfx.click();
-            const code = document.getElementById('generated-coupon-code').innerText;
-            navigator.clipboard.writeText(code).then(() => {
-                showMessage('คัดลอกแล้ว!', 'นำไปวางในเว็บ KidLearning ได้เลย', '📋');
-            });
-        }
-
-        function closeCouponSuccessModal() {
-            sfx.click();
-            const modal = document.getElementById('coupon-success-modal');
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            modal.children[0].classList.replace('scale-100', 'scale-95');
-        }
-
-        // ==========================================
         // CLOUD SAVE SYSTEM (FIRESTORE)
         // ==========================================
         let boardLogicalSaved = null;
@@ -883,6 +809,7 @@
                 return Promise.resolve(); 
             }
 
+            // คำนวณทรัพย์สินรวม (เงิน + มูลค่าของทุกอย่างในคลัง)
             let currentTotalAssets = inventory.money || 0;
             currentTotalAssets += (inventory.oat || 0) * PRICES.oat;
             currentTotalAssets += (inventory.wheat || 0) * PRICES.wheat;
@@ -938,11 +865,7 @@
                     if(data.ownedPlots) ownedPlots = data.ownedPlots;
                     if(data.siloCount) siloCount = data.siloCount;
                     if(data.hasDog !== undefined) hasDog = data.hasDog;
-                    
-                    if(data.ownedCars) {
-                        ownedCars.worker_1 = data.ownedCars.worker_1 || 0;
-                        ownedCars.auto_m5 = data.ownedCars.auto_m5 || 0;
-                    }
+                    if(data.ownedCars) ownedCars = data.ownedCars;
                     
                     if(data.boardLogicalStr) boardLogicalSaved = JSON.parse(data.boardLogicalStr);
                     else if(data.boardLogical) boardLogicalSaved = data.boardLogical; 
@@ -975,12 +898,12 @@
             if (currentUser && isFarmActive) {
                 saveGameData();
             }
-        }, 180000); 
+        }, 180000); // Auto save every 3 minutes
 
         // ==========================================
-        // SETTINGS SYSTEM 
+        // SETTINGS SYSTEM (NEW)
         // ==========================================
-        let isShowCropPercentage = false;
+        let isShowCropPercentage = true;
         let globalSfxVolume = 1.0;
 
         function openSettings() {
@@ -998,16 +921,19 @@
         }
 
         function updateSettings() {
+            // ปรับแสง
             const lightVal = parseFloat(document.getElementById('light-slider').value);
             document.getElementById('light-val').innerText = Math.round((lightVal / 1.2) * 100);
             if (ambientLight) ambientLight.intensity = lightVal;
             if (dirLight) dirLight.intensity = lightVal;
 
+            // ปรับเสียงเพลง BGM
             const bgmVal = parseFloat(document.getElementById('bgm-slider').value);
             document.getElementById('bgm-val').innerText = Math.round(bgmVal * 100);
             const bgm = document.getElementById('bgm');
             if (bgm) bgm.volume = bgmVal;
             
+            // ปรับเสียง SFX (ตัวคูณ)
             globalSfxVolume = parseFloat(document.getElementById('sfx-slider').value);
             document.getElementById('sfx-val').innerText = Math.round(globalSfxVolume * 100);
         }
@@ -1023,6 +949,7 @@
                 btn.innerText = 'ปิดการแสดงผล';
                 btn.className = 'bg-red-600 hover:bg-red-500 px-4 py-1.5 rounded-lg text-white text-sm font-bold transition shadow';
                 
+                // ซ่อนป้ายเปอร์เซ็นต์ทั้งหมดทันทีที่กดปิด
                 for(let z=0; z<ROWS; z++){
                     for(let x=0; x<COLS; x++){
                         let label = labelGrid[z]?.[x];
@@ -1036,7 +963,7 @@
         }
 
         // ==========================================
-        // AUDIO SYSTEM 
+        // AUDIO SYSTEM (Web Audio API & BGM)
         // ==========================================
         let audioCtx;
         let isMusicMuted = false;
@@ -1051,6 +978,7 @@
                     audioCtx.resume();
                 }
                 const bgm = document.getElementById('bgm');
+                // อิงตาม slider ตั้งค่า
                 bgm.volume = parseFloat(document.getElementById('bgm-slider').value);
                 if(!isMusicMuted) {
                     bgm.play().catch(e => {
@@ -1103,6 +1031,7 @@
                 const gain = audioCtx.createGain();
                 osc.type = type;
                 osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                // นำความดังจาก settings มาคูณ
                 let finalVol = vol * globalSfxVolume;
                 gain.gain.setValueAtTime(finalVol, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
@@ -1136,18 +1065,18 @@
 
         let siloCount = 1;
         const MAX_SILOS = 10;
-        const SILO_CAPACITY = 1000; 
+        const SILO_CAPACITY = 500; 
         const SILO_COST = 5000; 
         let isStorageFullNotified = false; 
 
         let ownedPlots = [true, false, false, false, true, false, false, true, false]; 
         
         const PLOT_PRICES = {
-            1: 50000, 2: 600000, 3: 700000, 5: 1000000,
-            6: 50000, 7: 0, 8: 50000 
+            1: 1000, 2: 10000, 3: 100000, 5: 1000000,
+            6: 10000, 7: 0, 8: 10000 
         };
 
-        const PRICES = { oat: 35, wheat: 36, barley: 37, corn: 45, soybean: 80, milk: 100, egg: 30 };
+        const PRICES = { oat: 15, wheat: 20, barley: 30, corn: 45, soybean: 60, milk: 500, egg: 15 };
         const SEED_COSTS = { oat: 500, wheat: 800, barley: 1200, corn: 2000, soybean: 3000 };
         
         let inventory = { money: 2500, oat: 0, wheat: 0, barley: 0, corn: 0, soybean: 0, milk: 0, egg: 0 };
@@ -1157,13 +1086,15 @@
         let isPaused = false;     
         let isPanelOpen = false;
         
-        // กำหนดประเภทแรงงาน / หุ่นยนต์
         const CAR_TYPES = {
-            worker_1: { id: 'worker_1', name: 'คนงานชาวสวน', cost: 1000, speed: 1.0, color: 0x3b82f6, icon: '👨‍🌾', isTemp: true },
-            auto_m5: { id: 'auto_m5', name: 'รุ่นอัลตร้าเทอร์โบ', cost: 6000000, speed: 3.0, color: 0xef4444, icon: '🚀', isTemp: false }
+            auto_m1: { id: 'auto_m1', name: 'รุ่นเริ่มต้น', cost: 10000, speed: 1.2, color: 0x9ca3af, icon: '🚜' },
+            auto_m2: { id: 'auto_m2', name: 'รุ่นมาตรฐาน', cost: 20000, speed: 1.8, color: 0xeab308, icon: '🤖' },
+            auto_m3: { id: 'auto_m3', name: 'รุ่นความเร็วสูง', cost: 30000, speed: 2.5, color: 0x22c55e, icon: '🚙' },
+            auto_m4: { id: 'auto_m4', name: 'รุ่นซุปเปอร์สปีด', cost: 45000, speed: 3.5, color: 0x3b82f6, icon: '🏎️' },
+            auto_m5: { id: 'auto_m5', name: 'รุ่นอัลตร้าเทอร์โบ', cost: 60000, speed: 5.0, color: 0xef4444, icon: '🚀' }
         };
 
-        let ownedCars = { worker_1: 0, auto_m5: 0 };
+        let ownedCars = { auto_m1: 0, auto_m2: 0, auto_m3: 0, auto_m4: 0, auto_m5: 0 };
         
         let activeCars = [];
         let boardLogical = []; 
@@ -1276,6 +1207,9 @@
             initMenu();
         }
 
+        // ==========================================
+        // LEADERBOARD SYSTEM (Client-side sorting)
+        // ==========================================
         function openLeaderboard() {
             sfx.click();
             const modal = document.getElementById('leaderboard-modal');
@@ -1298,6 +1232,7 @@
                         return;
                     }
 
+                    // จัดเรียงข้อมูล
                     let players = [];
                     querySnapshot.forEach((doc) => {
                         const data = doc.data();
@@ -1306,7 +1241,10 @@
                         players.push({ name: pName, money: money });
                     });
 
+                    // เรียงจากมากไปน้อย
                     players.sort((a, b) => b.money - a.money);
+                    
+                    // เอาแค่ 10 อันดับแรก
                     let top10 = players.slice(0, 10);
 
                     let html = '';
@@ -1390,7 +1328,7 @@
                 ownedCars[key]++;
                 
                 if (isFarmActive) {
-                    let carGroup = key === 'worker_1' ? createWorkerModel() : createCarModel(car.color);
+                    let carGroup = createCarModel(car.color);
                     carGroup.visible = false; 
                     scene.add(carGroup);
                     
@@ -1410,7 +1348,7 @@
                 
                 updateUI();
                 sfx.buy();
-                showMessage('จ้างงานสำเร็จ!', `คุณได้ ${car.name} ${car.icon} พร้อมทำงานแล้ว!`, car.icon);
+                showMessage('ซื้อหุ่นยนต์สำเร็จ!', `คุณได้ซื้อ <span class="text-yellow-400">${car.name}</span> ${car.icon} เข้าสู่คลังพร้อมใช้งาน!`, car.icon);
             } else {
                 sfx.error();
                 showMessage('เงินไม่พอ!', `ต้องการเงินเพิ่มอีก <span class="text-red-400">${(car.cost - inventory.money).toLocaleString()} ฿</span>`, '❌');
@@ -1553,91 +1491,45 @@
 
         function createCowModel() {
             const group = new THREE.Group();
-            
-            const wMat = new THREE.MeshLambertMaterial({ color: 0xffffff });     
-            const bMat = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });     
-            const pinkMat = new THREE.MeshLambertMaterial({ color: 0xffb6c1 }); 
-            const hornMat = new THREE.MeshLambertMaterial({ color: 0xe5e5d8 }); 
-            const hoofMat = new THREE.MeshLambertMaterial({ color: 0x2d3748 }); 
+            const wMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            const bMat = new THREE.MeshLambertMaterial({ color: 0x222222 });
+            const pinkMat = new THREE.MeshLambertMaterial({ color: 0xffb6c1 });
 
             const body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.4, 0.8), wMat);
-            body.position.y = 0.4; body.castShadow = true; body.receiveShadow = true;
-            group.add(body);
+            body.position.y = 0.4; body.castShadow = true; group.add(body);
             
-            const spotRight = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.25, 0.35), bMat);
-            spotRight.position.set(0.251, 0.45, 0.05); group.add(spotRight);
-
-            const spotLeft = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.2, 0.3), bMat);
-            spotLeft.position.set(-0.251, 0.38, -0.15); group.add(spotLeft);
-
-            const spotTop = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.02, 0.2), bMat);
-            spotTop.position.set(-0.05, 0.601, 0.1); group.add(spotTop);
+            const spot = new THREE.Mesh(new THREE.BoxGeometry(0.51, 0.2, 0.3), bMat);
+            spot.position.set(0, 0.45, 0.1); group.add(spot);
 
             const head = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), wMat);
             head.position.set(0, 0.6, 0.5); head.castShadow = true; group.add(head);
             
-            const headSpot = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.31, 0.15), bMat);
-            headSpot.position.set(0.08, 0.6, 0.55); group.add(headSpot);
-            
-            const snout = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.14, 0.15), pinkMat);
+            const snout = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.15, 0.15), pinkMat);
             snout.position.set(0, 0.5, 0.65); group.add(snout);
-
-            const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.05, 0.05), bMat);
-            eyeL.position.set(-0.152, 0.63, 0.52); group.add(eyeL);
-
-            const eyeR = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.05, 0.05), bMat);
-            eyeR.position.set(0.152, 0.63, 0.52); group.add(eyeR);
-
-            const earL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.04, 0.04), wMat);
-            earL.position.set(-0.18, 0.68, 0.42); earL.rotation.z = 0.2; group.add(earL);
-
-            const earR = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.04, 0.04), wMat);
-            earR.position.set(0.18, 0.68, 0.42); earR.rotation.z = -0.2; group.add(earR);
-
-            const hornL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 0.04), hornMat);
-            hornL.position.set(-0.1, 0.78, 0.45); hornL.rotation.z = -0.1; group.add(hornL);
-
-            const hornR = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 0.04), hornMat);
-            hornR.position.set(0.1, 0.78, 0.45); hornR.rotation.z = 0.1; group.add(hornR);
 
             const udder = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.1, 0.2), pinkMat);
             udder.position.set(0, 0.15, -0.1); group.add(udder);
 
-            const legPositions = [
-                { x: 0.18, z: 0.28, name: "leg1" },  
-                { x: -0.18, z: 0.28, name: "leg2" }, 
-                { x: 0.18, z: -0.28, name: "leg3" }, 
-                { x: -0.18, z: -0.28, name: "leg4" } 
-            ];
-
-            legPositions.forEach(pos => {
-                const legGroup = new THREE.Group();
-                legGroup.position.set(pos.x, 0.15, pos.z); 
-                legGroup.name = pos.name;
-
-                const legMesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.24, 0.1), wMat);
-                legMesh.position.y = 0.03; legMesh.castShadow = true;
-                
-                const hoofMesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.06, 0.1), hoofMat);
-                hoofMesh.position.y = -0.12; hoofMesh.castShadow = true;
-
-                legGroup.add(legMesh, hoofMesh);
-                group.add(legGroup);
-            });
+            const legGeo = new THREE.BoxGeometry(0.1, 0.3, 0.1);
+            const lfl = new THREE.Mesh(legGeo, wMat); lfl.position.set(0.2, 0.15, 0.3); lfl.name="leg1";
+            const lfr = new THREE.Mesh(legGeo, wMat); lfr.position.set(-0.2, 0.15, 0.3); lfr.name="leg2";
+            const lbl = new THREE.Mesh(legGeo, wMat); lbl.position.set(0.2, 0.15, -0.3); lbl.name="leg3";
+            const lbr = new THREE.Mesh(legGeo, wMat); lbr.position.set(-0.2, 0.15, -0.3); lbr.name="leg4";
+            group.add(lfl, lfr, lbl, lbr);
 
             return group;
         }
 
         function createChickenModel() {
             const group = new THREE.Group();
-            const orangeMat = new THREE.MeshLambertMaterial({ color: 0xf97316 }); 
-            const rMat = new THREE.MeshLambertMaterial({ color: 0xff0000 }); 
-            const yMat = new THREE.MeshLambertMaterial({ color: 0xffa500 }); 
+            const wMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            const rMat = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+            const yMat = new THREE.MeshLambertMaterial({ color: 0xffa500 });
 
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.25), orangeMat);
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.25), wMat);
             body.position.y = 0.15; body.castShadow = true; group.add(body);
             
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.15, 0.15), orangeMat);
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.15, 0.15), wMat);
             head.position.set(0, 0.3, 0.1); group.add(head);
 
             const beak = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.1, 4), yMat);
@@ -1741,46 +1633,22 @@
 
         function createShelter() {
             const group = new THREE.Group();
-
-            const darkBrownMat = new THREE.MeshLambertMaterial({ color: 0x3d2314 }); 
-
-            const width = 2.0;
-            const height = 1.6;
-            const depth = 2.0;
-            const thick = 0.1; 
-
-            const wallLeft = new THREE.Mesh(new THREE.BoxGeometry(thick, height, depth), darkBrownMat);
-            wallLeft.position.set(-width/2 + thick/2, height/2, 0);
-            wallLeft.castShadow = true; wallLeft.receiveShadow = true;
-            group.add(wallLeft);
-
-            const wallRight = new THREE.Mesh(new THREE.BoxGeometry(thick, height, depth), darkBrownMat);
-            wallRight.position.set(width/2 - thick/2, height/2, 0);
-            wallRight.castShadow = true; wallRight.receiveShadow = true;
-            group.add(wallRight);
-
-            const wallBack = new THREE.Mesh(new THREE.BoxGeometry(width - (thick * 2), height, thick), darkBrownMat);
-            wallBack.position.set(0, height/2, -depth/2 + thick/2);
-            wallBack.castShadow = true; wallBack.receiveShadow = true;
-            group.add(wallBack);
-
-            const wallFrontLeft = new THREE.Mesh(new THREE.BoxGeometry(0.5, height, thick), darkBrownMat);
-            wallFrontLeft.position.set(-0.75, height/2, depth/2 - thick/2);
-            wallFrontLeft.castShadow = true; wallFrontLeft.receiveShadow = true;
-            group.add(wallFrontLeft);
-
-            const wallFrontRight = new THREE.Mesh(new THREE.BoxGeometry(0.5, height, thick), darkBrownMat);
-            wallFrontRight.position.set(0.75, height/2, depth/2 - thick/2);
-            wallFrontRight.castShadow = true; wallFrontRight.receiveShadow = true;
-            group.add(wallFrontRight);
-
-            const roofGeo = new THREE.BoxGeometry(2.4, 0.15, 2.4);
-            const roof = new THREE.Mesh(roofGeo, darkBrownMat);
-            roof.position.set(0, height + 0.05, 0.1);
-            roof.rotation.x = -0.15; 
-            roof.castShadow = true;
-            group.add(roof);
+            const woodMat = new THREE.MeshLambertMaterial({ color: 0x5c4033 });
+            const roofMat = new THREE.MeshLambertMaterial({ color: 0x8b0000 });
             
+            const postGeo = new THREE.BoxGeometry(0.2, 2, 0.2);
+            const p1 = new THREE.Mesh(postGeo, woodMat); p1.position.set(-1.5, 1, -1.5); p1.castShadow = true;
+            const p2 = new THREE.Mesh(postGeo, woodMat); p2.position.set(1.5, 1, -1.5); p2.castShadow = true;
+            const p3 = new THREE.Mesh(postGeo, woodMat); p3.position.set(-1.5, 1, 1.5); p3.castShadow = true;
+            const p4 = new THREE.Mesh(postGeo, woodMat); p4.position.set(1.5, 1, 1.5); p4.castShadow = true;
+            
+            const roofGeo = new THREE.ConeGeometry(2.8, 1.2, 4);
+            const roof = new THREE.Mesh(roofGeo, roofMat);
+            roof.position.set(0, 2.6, 0);
+            roof.rotation.y = Math.PI / 4;
+            roof.castShadow = true;
+            
+            group.add(p1, p2, p3, p4, roof);
             return group;
         }
 
@@ -1817,30 +1685,10 @@
             const group = new THREE.Group();
             group.userData = { x, z, type };
 
-            if (type === 'oat') {
-                const bladeGeo = new THREE.ConeGeometry(0.08, 0.6, 4); 
-                const mat = sharedMats.oat; 
-                
-                const bladesData = [
-                    { x: 0, z: 0, rx: 0, rz: 0, scaleY: 1.2 },        
-                    { x: 0.12, z: 0.12, rx: 0.3, rz: -0.3, scaleY: 0.8 }, 
-                    { x: -0.12, z: 0.12, rx: 0.3, rz: 0.3, scaleY: 0.9 }, 
-                    { x: 0.12, z: -0.12, rx: -0.3, rz: -0.3, scaleY: 0.9 }, 
-                    { x: -0.12, z: -0.12, rx: -0.3, rz: 0.3, scaleY: 0.8 }  
-                ];
-
-                bladesData.forEach(b => {
-                    const blade = new THREE.Mesh(bladeGeo, mat);
-                    blade.position.set(b.x, (0.6 * b.scaleY) / 2, b.z);
-                    blade.scale.y = b.scaleY;
-                    blade.rotation.x = b.rx;
-                    blade.rotation.z = b.rz;
-                    blade.castShadow = true;
-                    group.add(blade);
-                });
-            } 
-            else if (type === 'wheat' || type === 'barley') {
-                let hMat = type === 'wheat' ? sharedMats.wheat : sharedMats.barley; 
+            if (type === 'oat' || type === 'wheat' || type === 'barley') {
+                let hMat = sharedMats.oat; 
+                if (type === 'wheat') hMat = sharedMats.wheat; 
+                if (type === 'barley') hMat = sharedMats.barley; 
                 
                 const positions = [ {x: -0.2, z: -0.2}, {x: 0.2, z: 0.1}, {x: -0.1, z: 0.3} ];
                 positions.forEach(pos => {
@@ -1869,22 +1717,6 @@
                 cob2.position.set(-0.08, 0.8, -0.08);
                 cob2.rotation.z = Math.PI / 4;
                 group.add(cob2);
-
-                const leafGeo = new THREE.ConeGeometry(0.06, 0.6, 3); 
-                
-                const leaf1 = new THREE.Mesh(leafGeo, sharedMats.green);
-                leaf1.position.set(0.15, 0.35, -0.05);
-                leaf1.rotation.z = -Math.PI / 3; 
-                leaf1.rotation.x = -0.2; 
-                leaf1.castShadow = true;
-                group.add(leaf1);
-
-                const leaf2 = new THREE.Mesh(leafGeo, sharedMats.green);
-                leaf2.position.set(-0.15, 0.75, 0.05);
-                leaf2.rotation.z = Math.PI / 3;  
-                leaf2.rotation.x = 0.2;  
-                leaf2.castShadow = true;
-                group.add(leaf2);
             }
             else if (type === 'soybean') {
                 const stalk = new THREE.Mesh(sharedGeos.soyStalk, sharedMats.darkGreen);
@@ -1896,31 +1728,8 @@
                 bush.castShadow = true;
                 group.add(bush);
             }
-            
             group.position.set(x, 0, z);
             return group;
-        }
-
-        function buySilo() {
-            if (siloCount >= MAX_SILOS) {
-                if(typeof sfx !== 'undefined') sfx.error();
-                showMessage('พื้นที่เต็มแล้ว!', 'คุณมีโรงนาสูงสุด 10 หลังแล้ว ไม่สามารถซื้อเพิ่มได้อีก', '🛑');
-                return;
-            }
-
-            if (inventory.money >= SILO_COST) {
-                inventory.money -= SILO_COST;
-                siloCount++;
-                if(typeof sfx !== 'undefined') sfx.buy();
-                
-                spawnSiloMesh(siloCount - 1);
-                updateUI(); 
-                closeSiloModal();
-                showMessage('สร้างโรงนาสำเร็จ!', `ทีมช่างได้สร้างโรงนาหลังที่ ${siloCount} เสร็จแล้ว!<br>ตอนนี้ความจุคลังรวมของคุณคือ <span class="text-green-400 font-bold">${(siloCount * SILO_CAPACITY).toLocaleString()}</span> หน่วย`, '🏡');
-            } else {
-                if(typeof sfx !== 'undefined') sfx.error();
-                showMessage('เงินไม่พอ!', `ต้องการเงินเพิ่มอีก ${(SILO_COST - inventory.money).toLocaleString()} ฿ สำหรับสร้างโรงนา`, '❌');
-            }
         }
 
         function createPlotFence(isOwned, isLivestock = false) {
@@ -1934,21 +1743,23 @@
             
             const plotW = PLOT_SIZE - 0.2; 
             const halfW = plotW / 2;
-            const height = 0.6; 
+            const height = 0.5;
             const thickness = 0.15;
             
-            const railGeoX = new THREE.BoxGeometry(plotW, 0.08, thickness/2);
-            const railGeoZ = new THREE.BoxGeometry(thickness/2, 0.08, plotW);
+            const railGeoX = new THREE.BoxGeometry(plotW, 0.1, thickness/2);
+            const railGeoZ = new THREE.BoxGeometry(thickness/2, 0.1, plotW);
             
-            const railHeights = [0.15, 0.35, 0.55]; 
+            const r1 = new THREE.Mesh(railGeoX, railMat); r1.position.set(0, height - 0.1, halfW); r1.castShadow = true;
+            const r2 = new THREE.Mesh(railGeoX, railMat); r2.position.set(0, height - 0.1, -halfW); r2.castShadow = true;
+            const r3 = new THREE.Mesh(railGeoZ, railMat); r3.position.set(halfW, height - 0.1, 0); r3.castShadow = true;
+            const r4 = new THREE.Mesh(railGeoZ, railMat); r4.position.set(-halfW, height - 0.1, 0); r4.castShadow = true;
             
-            railHeights.forEach(yPos => {
-                const r1 = new THREE.Mesh(railGeoX, railMat); r1.position.set(0, yPos, halfW); r1.castShadow = true;
-                const r2 = new THREE.Mesh(railGeoX, railMat); r2.position.set(0, yPos, -halfW); r2.castShadow = true;
-                const r3 = new THREE.Mesh(railGeoZ, railMat); r3.position.set(halfW, yPos, 0); r3.castShadow = true;
-                const r4 = new THREE.Mesh(railGeoZ, railMat); r4.position.set(-halfW, yPos, 0); r4.castShadow = true;
-                group.add(r1, r2, r3, r4);
-            });
+            const rm1 = new THREE.Mesh(railGeoX, railMat); rm1.position.set(0, height/2 - 0.05, halfW); rm1.castShadow = true;
+            const rm2 = new THREE.Mesh(railGeoX, railMat); rm2.position.set(0, height/2 - 0.05, -halfW); rm2.castShadow = true;
+            const rm3 = new THREE.Mesh(railGeoZ, railMat); rm3.position.set(halfW, height/2 - 0.05, 0); rm3.castShadow = true;
+            const rm4 = new THREE.Mesh(railGeoZ, railMat); rm4.position.set(-halfW, height/2 - 0.05, 0); rm4.castShadow = true;
+            
+            group.add(r1, r2, r3, r4, rm1, rm2, rm3, rm4);
             
             const postGeo = new THREE.BoxGeometry(0.25, height, 0.25);
             const step = plotW / 3;
@@ -1968,13 +1779,9 @@
             
             if (isLivestock) {
                 const centerRailMat = new THREE.MeshLambertMaterial({ color: railColor });
-                
-                railHeights.forEach(yPos => {
-                    const midRail = new THREE.Mesh(railGeoZ, centerRailMat); 
-                    midRail.position.set(0, yPos, 0); 
-                    midRail.castShadow = true;
-                    group.add(midRail);
-                });
+                const midRail1 = new THREE.Mesh(railGeoZ, centerRailMat); midRail1.position.set(0, height - 0.1, 0); midRail1.castShadow = true;
+                const midRail2 = new THREE.Mesh(railGeoZ, centerRailMat); midRail2.position.set(0, height/2 - 0.05, 0); midRail2.castShadow = true;
+                group.add(midRail1, midRail2);
 
                 for(let i=1; i<3; i++) {
                     const pz = -halfW + (i * step);
@@ -1986,70 +1793,6 @@
             return group;
         }
 
-        // โมเดลคนงานชาวสวน
-        function createWorkerModel() {
-            const group = new THREE.Group();
-            
-            const bodyMat = new THREE.MeshLambertMaterial({ color: 0x3b82f6 });
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.35, 0.2), bodyMat);
-            body.position.y = 0.3;
-            body.castShadow = true;
-            group.add(body);
-            
-            const skinMat = new THREE.MeshLambertMaterial({ color: 0xfcb084 });
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), skinMat);
-            head.position.y = 0.55;
-            head.castShadow = true;
-            group.add(head);
-
-            const hatMat = new THREE.MeshLambertMaterial({ color: 0xeab308 });
-            const hat = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.15, 12), hatMat);
-            hat.position.y = 0.7;
-            hat.castShadow = true;
-            group.add(hat);
-
-            const legMat = new THREE.MeshLambertMaterial({ color: 0x1e3a8a });
-            const legGeo = new THREE.BoxGeometry(0.1, 0.2, 0.1);
-            
-            const legLGroup = new THREE.Group();
-            legLGroup.position.set(0.08, 0.1, 0);
-            const legL = new THREE.Mesh(legGeo, legMat);
-            legL.position.y = -0.1;
-            legL.castShadow = true;
-            legLGroup.add(legL);
-            legLGroup.name = "leg_L1"; 
-            
-            const legRGroup = new THREE.Group();
-            legRGroup.position.set(-0.08, 0.1, 0);
-            const legR = new THREE.Mesh(legGeo, legMat);
-            legR.position.y = -0.1;
-            legR.castShadow = true;
-            legRGroup.add(legR);
-            legRGroup.name = "leg_R1"; 
-
-            group.add(legLGroup, legRGroup);
-
-            const armGeo = new THREE.BoxGeometry(0.08, 0.25, 0.08);
-            const armLGroup = new THREE.Group();
-            armLGroup.position.set(0.18, 0.4, 0);
-            const armL = new THREE.Mesh(armGeo, skinMat);
-            armL.position.y = -0.1;
-            armLGroup.add(armL);
-            armLGroup.name = "arm_L";
-            
-            const armRGroup = new THREE.Group();
-            armRGroup.position.set(-0.18, 0.4, 0);
-            const armR = new THREE.Mesh(armGeo, skinMat);
-            armR.position.y = -0.1;
-            armRGroup.add(armR);
-            armRGroup.name = "arm_R";
-
-            group.add(armLGroup, armRGroup);
-
-            return group;
-        }
-
-        // โมเดลหุ่นยนต์ (M5)
         function createCarModel(colorHex) {
             const carGroup = new THREE.Group();
             
@@ -2126,17 +1869,17 @@
         function createSiloModel() {
             const group = new THREE.Group();
             const bodyGeo = new THREE.BoxGeometry(2.4, 2.0, 2.4);
-            const bodyMat = new THREE.MeshLambertMaterial({color: 0x777777}); 
+            const bodyMat = new THREE.MeshLambertMaterial({color: 0xb91c1c}); 
             const body = new THREE.Mesh(bodyGeo, bodyMat);
             body.position.y = 1.0;
             body.castShadow = true;
             body.receiveShadow = true;
 
-            const roofGeo = new THREE.CylinderGeometry(1.2, 1.2, 2.5, 16, 1, false, Math.PI / 2, Math.PI);
+            const roofGeo = new THREE.ConeGeometry(2.0, 1.2, 4);
             const roofMat = new THREE.MeshLambertMaterial({color: 0x334155});
             const roof = new THREE.Mesh(roofGeo, roofMat);
-            roof.position.y = 2.0; 
-            roof.rotation.x = Math.PI / 2;
+            roof.position.y = 2.6;
+            roof.rotation.y = Math.PI / 4; 
             roof.castShadow = true;
 
             const doorGeo = new THREE.BoxGeometry(0.8, 1.2, 0.1);
@@ -2190,6 +1933,29 @@
             } else {
                 sfx.error();
                 showMessage('เงินไม่พอ!', `ต้องการเงิน ${(500).toLocaleString()} ฿ สำหรับซื้อน้องหมา`, '❌');
+            }
+        }
+
+        function buySilo() {
+            if (siloCount >= MAX_SILOS) {
+                sfx.error();
+                return;
+            }
+
+            if (inventory.money >= SILO_COST) {
+                inventory.money -= SILO_COST;
+                
+                spawnSiloMesh(siloCount);
+                siloCount++; 
+                
+                sfx.buy();
+                updateUI();
+                openSiloModal(); 
+                
+                showMessage('สร้างโรงนาสำเร็จ!', `คุณสร้างโรงนาเพิ่ม 1 หลัง<br>ความจุผลผลิตสูงสุดเพิ่มเป็น ${(siloCount * SILO_CAPACITY).toLocaleString()} หน่วย!`, '🏡');
+            } else {
+                sfx.error();
+                showMessage('เงินไม่พอ!', `ต้องการเงิน ${(SILO_COST).toLocaleString()} ฿ สำหรับสร้างโรงนา`, '❌');
             }
         }
 
@@ -2294,7 +2060,7 @@
                     let isSiloPlot = (plotIndex === 4);
                     let isLivestock = (plotIndex >= 6); 
                     
-                    let color = isSiloPlot ? 0x79553a : (isLivestock ? 0x6bbd45 : 0x79553a);
+                    let color = isSiloPlot ? 0x86efac : (isLivestock ? 0x6bbd45 : 0x79553a); 
                     
                     const pg = new THREE.Mesh(new THREE.PlaneGeometry(PLOT_SIZE, PLOT_SIZE), new THREE.MeshLambertMaterial({ color }));
                     pg.rotation.x = -Math.PI / 2;
@@ -2318,24 +2084,20 @@
                         let chickenShelter = createShelter();
                         chickenShelter.position.set(cx - PLOT_SIZE/4, 0, cz - PLOT_SIZE/2 + 2.5);
                         chickenShelter.scale.set(0.7, 0.7, 0.7); 
-                        chickenShelter.children.forEach(c => c.userData = { isShelter: true, plotIndex: plotIndex });
                         envGroup.add(chickenShelter);
                         
                         let chickenTrough = new THREE.Mesh(new THREE.BoxGeometry(1, 0.3, 0.6), new THREE.MeshLambertMaterial({ color: 0x888888 }));
                         chickenTrough.position.set(cx - PLOT_SIZE/4, 0.15, cz + PLOT_SIZE/2 - 1.5);
                         chickenTrough.castShadow = true;
-                        chickenTrough.userData = { isShelter: true, plotIndex: plotIndex };
                         envGroup.add(chickenTrough);
 
                         let cowShelter = createShelter();
                         cowShelter.position.set(cx + PLOT_SIZE/4, 0, cz - PLOT_SIZE/2 + 2.5);
-                        cowShelter.children.forEach(c => c.userData = { isShelter: true, plotIndex: plotIndex });
                         envGroup.add(cowShelter);
                         
                         let cowTrough = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.4, 0.8), new THREE.MeshLambertMaterial({ color: 0x888888 }));
                         cowTrough.position.set(cx + PLOT_SIZE/4, 0.2, cz + PLOT_SIZE/2 - 1.5);
                         cowTrough.castShadow = true;
-                        cowTrough.userData = { isShelter: true, plotIndex: plotIndex };
                         envGroup.add(cowTrough);
                     }
 
@@ -2420,7 +2182,7 @@
             for(let key in ownedCars) {
                 for(let i = 0; i < ownedCars[key]; i++) {
                     const car = CAR_TYPES[key];
-                    const carGroup = key === 'worker_1' ? createWorkerModel() : createCarModel(car.color);
+                    const carGroup = createCarModel(car.color);
                     carGroup.visible = false; 
                     scene.add(carGroup);
 
@@ -2453,7 +2215,7 @@
             for (let z = 0; z < ROWS; z++) {
                 for (let x = 0; x < COLS; x++) {
                     if (boardLogical[z][x] !== 'empty' && growthLogical[z][x] < 100) {
-                        growthLogical[z][x] += 2; 
+                        growthLogical[z][x] += 25; 
                         if (growthLogical[z][x] > 100) growthLogical[z][x] = 100;
                         
                         let crop = mineGroup.children.find(m => m.userData.x === x && m.userData.z === z);
@@ -2464,27 +2226,30 @@
                     }
                 }
             }
-        }, 5000); 
-        
+        }, 30000); 
+
         setInterval(() => {
             if (!isFarmActive || isPaused) return;
             
-            let hasDroppedGoldenEggThisRound = false; 
-
-            farmAnimals.forEach(a => {
-                if (a.type === 'cow') {
+            let droppedEgg = false;
+            let droppedMilk = false;
+            
+            let shuffledAnimals = [...farmAnimals].sort(() => Math.random() - 0.5);
+            
+            shuffledAnimals.forEach(a => {
+                if (a.type === 'cow' && !droppedMilk) {
                     let drop = createMilkModel();
                     drop.position.set(a.group.position.x, 0, a.group.position.z);
                     drop.userData.life = 10.0; 
                     itemGroup.add(drop);
-                } else if (a.type === 'chicken') {
+                    droppedMilk = true;
+                } else if (a.type === 'chicken' && !droppedEgg) {
                     totalEggsDropped++;
                     let drop;
                     
-                    if ((totalEggsDropped >= 100 || Math.random() < 0.01) && !hasDroppedGoldenEggThisRound) {
+                    if (totalEggsDropped >= 30 || Math.random() < (1/30)) {
                         drop = createGoldenEggModel();
                         totalEggsDropped = 0; 
-                        hasDroppedGoldenEggThisRound = true; 
                     } else {
                         drop = createEggModel();
                     }
@@ -2492,9 +2257,10 @@
                     drop.position.set(a.group.position.x, 0, a.group.position.z);
                     drop.userData.life = 10.0; 
                     itemGroup.add(drop);
+                    droppedEgg = true;
                 }
             });
-        }, 25000); 
+        }, 10000);
 
         setInterval(() => {
             if (!isFarmActive || isPaused) return;
@@ -2571,8 +2337,8 @@
         function generateMerchantOrder() {
             const crops = ['milk', 'egg']; 
             const crop = crops[Math.floor(Math.random() * crops.length)];
-            const amount = Math.floor(Math.random() * 901) + 100;
-            const pricePerUnit = Math.floor(PRICES[crop] * 4); 
+            const amount = Math.floor(Math.random() * 451) + 50; 
+            const pricePerUnit = Math.floor(PRICES[crop] * 1.2); 
             
             currentOrder = {
                 crop: crop,
@@ -2619,8 +2385,8 @@
             let startX = pX * (PLOT_SIZE + GAP);
             let startZ = pZ * (PLOT_SIZE + GAP);
             
-            let localX = 1.5 + (col * 2.5);
-            let localZ = 4.5 + (row * 3.5);
+            let localX = 1.5 + (col * 3);
+            let localZ = 4.5 + (row * 6);
             
             let silo = createSiloModel();
             silo.position.set(startX + localX, 0, startZ + localZ);
@@ -2666,7 +2432,7 @@
             const deltaY = event.deltaY;
             const newY = camera.position.y + (deltaY * zoomSpeed);
 
-            if (newY >= 10 && newY <= 80) { 
+            if (newY >= 10 && newY <= 150) { 
                 camera.position.y = newY;
                 camera.position.z += (deltaY * zoomSpeed * 0.5); 
             }
@@ -2707,54 +2473,6 @@
             setTimeout(() => div.remove(), 1000);
         }
 
-        function collectItemsInPlot(plotIndex, clientX, clientY) {
-            let pX = plotIndex % PLOTS_X;
-            let pZ = Math.floor(plotIndex / PLOTS_X);
-            let startX = pX * (PLOT_SIZE + GAP);
-            let endX = startX + PLOT_SIZE;
-            let startZ = pZ * (PLOT_SIZE + GAP);
-            let endZ = startZ + PLOT_SIZE;
-
-            let collectedCount = 0;
-            let itemsToRemove = [];
-
-            for (let i = 0; i < itemGroup.children.length; i++) {
-                let item = itemGroup.children[i];
-                if (item.position.x >= startX && item.position.x <= endX &&
-                    item.position.z >= startZ && item.position.z <= endZ) {
-                    
-                    if(getTotalStorage() >= siloCount * SILO_CAPACITY && item.userData.type !== 'golden_egg') {
-                        if(!isStorageFullNotified) {
-                            sfx.error();
-                            showMessage('คลังเต็ม!', 'ไม่สามารถเก็บของเพิ่มได้ กรุณาขายของในคลังก่อน', '📦');
-                            isStorageFullNotified = true;
-                        }
-                        continue;
-                    }
-
-                    collectedCount++;
-                    if (item.userData.type === 'milk') {
-                        inventory.milk++;
-                    } else if (item.userData.type === 'egg') {
-                        inventory.egg++;
-                    } else if (item.userData.type === 'golden_egg') {
-                        sfx.buy();
-                        inventory.money += 10000;
-                        showFloatText(clientX, clientY, '+10,000 ฿ 🌟');
-                        showMessage('แจ็คพอตแตก! 🌟', 'คุณเก็บไข่ทองคำได้<br>ได้รับเงินโบนัส <span class="text-yellow-400 font-bold">10,000 ฿</span> ทันที!', '🌟');
-                    }
-                    itemsToRemove.push(item);
-                }
-            }
-
-            if (collectedCount > 0) {
-                sfx.collect();
-                showFloatText(clientX, clientY, `เก็บได้ ${collectedCount} ชิ้น!`);
-                itemsToRemove.forEach(item => itemGroup.remove(item));
-                updateUI();
-            }
-        }
-
         container.addEventListener('pointerup', (event) => {
             if(isInMenu) return;
             isDragging = false;
@@ -2773,8 +2491,8 @@
                     
                     if (mesh.userData && mesh.userData.isDrop) {
                         if(getTotalStorage() >= siloCount * SILO_CAPACITY && mesh.userData.type !== 'golden_egg') {
+                            sfx.error();
                             if(!isStorageFullNotified) {
-                                sfx.error();
                                 showMessage('คลังเต็ม!', 'ไม่สามารถเก็บของเพิ่มได้ กรุณาขายของในคลังก่อน', '📦');
                                 isStorageFullNotified = true;
                             }
@@ -2808,20 +2526,6 @@
                     }
                 }
 
-                const shelterIntersects = raycaster.intersectObject(envGroup, true);
-                for (let i = 0; i < shelterIntersects.length; i++) {
-                    let obj = shelterIntersects[i].object;
-                    if (obj.userData && obj.userData.isShelter) {
-                        let pIdx = obj.userData.plotIndex;
-                        if (!ownedPlots[pIdx]) {
-                            openBuyPlotModal(pIdx);
-                        } else {
-                            openAnimalShopModal(pIdx);
-                        }
-                        return;
-                    }
-                }
-
                 const intersects = raycaster.intersectObject(ground);
                 if (intersects.length > 0) {
                     const intersectPoint = intersects[0].point;
@@ -2836,11 +2540,7 @@
                         
                         if (pX >= 0 && pX < PLOTS_X && pZ >= 0 && pZ < PLOTS_Z && localX < PLOT_SIZE && localZ < PLOT_SIZE) {
                             let plotIndex = (pZ * PLOTS_X) + pX;
-                            if (plotIndex >= 6 && ownedPlots[plotIndex]) {
-                                collectItemsInPlot(plotIndex, event.clientX, event.clientY);
-                            } else {
-                                openPlotModal(plotIndex);
-                            }
+                            openPlotModal(plotIndex);
                         }
                     }
                 }
@@ -2951,7 +2651,7 @@
             selectedPlotIndex = plotIndex;
             let emptyStatus = isPlotEmpty(plotIndex);
             
-            document.getElementById('car-select-title').innerText = emptyStatus ? '🌱 จัดสรรแรงงาน (โหมดปลูก)' : '🎯 จัดสรรแรงงาน (โหมดเกี่ยว)';
+            document.getElementById('car-select-title').innerText = emptyStatus ? '🌱 จัดสรรหุ่นยนต์ (โหมดปลูก)' : '🎯 จัดสรรหุ่นยนต์ (โหมดเกี่ยว)';
             document.getElementById('car-select-subtitle').innerText = plotNames[plotIndex];
             
             const customUI = document.getElementById('car-select-custom-ui');
@@ -2975,9 +2675,7 @@
             const optionsBox = document.getElementById('car-select-options');
             optionsBox.innerHTML = '';
             
-            let idleCounts = {};
-            for(let key in CAR_TYPES) idleCounts[key] = 0;
-            
+            let idleCounts = { auto_m1: 0, auto_m2: 0, auto_m3: 0, auto_m4: 0, auto_m5: 0 };
             activeCars.forEach(c => {
                 if (c.assignedPlot === null) idleCounts[c.type]++;
             });
@@ -2986,7 +2684,7 @@
             if(workingHere.length > 0) {
                 let statusDiv = document.createElement('div');
                 statusDiv.className = "bg-green-950/60 border border-green-500/40 p-2 rounded-xl text-xs text-left mb-2 text-green-300";
-                let text = "<b>แรงงานที่กำลังทำงานแปลงนี้:</b>";
+                let text = "<b>หุ่นยนต์ที่กำลังทำงานแปลงนี้:</b>";
                 workingHere.forEach(c => {
                     let jobText = c.jobType === 'plant' ? '(ปลูก)' : '(เกี่ยว)';
                     text += `<div class="mt-0.5">${CAR_TYPES[c.type].icon} ${CAR_TYPES[c.type].name} <span class="text-gray-400 text-[10px]">${jobText}</span></div>`;
@@ -3007,7 +2705,7 @@
                 opt.innerHTML = `
                     <div class="text-left">
                         <div class="font-bold text-white">${car.icon} ${car.name}</div>
-                        <div class="text-xs text-gray-400">ในคลังว่าง: <span class="text-yellow-400 font-bold">${idleCount}</span> ${car.isTemp ? 'คน' : 'ตัว'}</div>
+                        <div class="text-xs text-gray-400">ในคลังว่าง: <span class="text-yellow-400 font-bold">${idleCount}</span> ตัว</div>
                     </div>
                     <button onclick="deployCarToSelectedPlot('${key}', '${deployJobType}')" ${idleCount === 0 ? 'disabled class="bg-gray-700 text-gray-500 text-xs px-3 py-1.5 rounded-lg cursor-not-allowed"' : 'class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition shadow-md"'}>
                         ${deployBtnText}
@@ -3091,7 +2789,7 @@
         }
 
         // ==========================================
-        // SELLING SYSTEM MODAL
+        // SELLING SYSTEM MODAL (ตลาดกลาง)
         // ==========================================
         function openSellModal(type) {
             sfx.click();
@@ -3197,43 +2895,40 @@
         }
 
         // ==========================================
-        // MERCHANT SYSTEM 
+        // MERCHANT ORDER MODAL (พ่อค้า)
         // ==========================================
         function openMerchantModal() {
             sfx.click();
             if (!isMerchantHere || !currentOrder) {
-                sfx.error();
-                showMessage('พ่อค้ายังไม่พร้อม!', 'พ่อค้ากำลังเดินทางมา โปรดรอจนกว่าจะถึงฟาร์ม', '🤠');
+                showMessage('พ่อค้ายังมาไม่ถึง', 'โปรดรอให้พ่อค้าเดินทางมาถึงฟาร์มก่อน', '⏳');
                 return;
             }
             
-            let nameTH = currentOrder.crop === 'milk' ? '🥛 นมวัว' : '🥚 ไข่ไก่';
-            if(currentOrder.crop === 'oat') nameTH = '🌾 ข้าวโอ๊ต';
-            if(currentOrder.crop === 'wheat') nameTH = '🌾 ข้าวสาลี';
-            if(currentOrder.crop === 'barley') nameTH = '🌾 ข้าวบาร์เลย์';
-            if(currentOrder.crop === 'corn') nameTH = '🌽 ข้าวโพด';
-            if(currentOrder.crop === 'soybean') nameTH = '🫘 ถั่วเหลือง';
+            let cropNameTH = currentOrder.crop === 'oat' ? 'ข้าวโอ๊ต' : currentOrder.crop === 'wheat' ? 'ข้าวสาลี' : currentOrder.crop === 'barley' ? 'ข้าวบาร์เลย์' : currentOrder.crop === 'corn' ? 'ข้าวโพด' : currentOrder.crop === 'soybean' ? 'ถั่วเหลือง' : currentOrder.crop === 'milk' ? 'นมวัว' : 'ไข่ไก่';
+            let icon = '🌾';
+            if(currentOrder.crop === 'corn') icon = '🌽';
+            if(currentOrder.crop === 'soybean') icon = '🫘';
+            if(currentOrder.crop === 'milk') icon = '🥛';
+            if(currentOrder.crop === 'egg') icon = '🥚';
 
-            let playerHas = inventory[currentOrder.crop] || 0;
-            
-            let amountToSell = Math.min(playerHas, currentOrder.amount);
-            let estimatedPayout = amountToSell * currentOrder.pricePerUnit;
+            let playerHas = inventory[currentOrder.crop];
+            let sellAmount = Math.min(playerHas, currentOrder.amount);
+            let earnAmount = sellAmount * currentOrder.pricePerUnit;
 
-            document.getElementById('merchant-order-crop').innerText = nameTH;
+            document.getElementById('merchant-order-crop').innerHTML = `${icon} ${cropNameTH}`;
             document.getElementById('merchant-order-amount').innerText = currentOrder.amount.toLocaleString();
             document.getElementById('merchant-player-has').innerText = playerHas.toLocaleString();
+            document.getElementById('merchant-order-price').innerText = earnAmount.toLocaleString();
             
-            document.getElementById('merchant-order-price').innerText = estimatedPayout.toLocaleString();
-            
-            const btnFulfill = document.getElementById('btn-fulfill-order');
+            const btn = document.getElementById('btn-fulfill-order');
             if (playerHas > 0) {
-                btnFulfill.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-600');
-                btnFulfill.classList.add('bg-green-600', 'hover:bg-green-500');
-                btnFulfill.disabled = false;
+                btn.disabled = false;
+                btn.className = "bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-xl w-full text-md transition shadow-md";
+                btn.innerText = `✅ ขาย ${sellAmount.toLocaleString()} หน่วย`;
             } else {
-                btnFulfill.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-600');
-                btnFulfill.classList.remove('bg-green-600', 'hover:bg-green-500');
-                btnFulfill.disabled = true;
+                btn.disabled = true;
+                btn.className = "bg-gray-600 text-gray-400 font-bold py-3 px-4 rounded-xl w-full text-md cursor-not-allowed";
+                btn.innerText = "❌ ไม่มีผลผลิตเลย";
             }
 
             const modal = document.getElementById('merchant-modal');
@@ -3242,39 +2937,32 @@
         }
 
         function closeMerchantModal() {
-            if(typeof sfx !== 'undefined') sfx.click();
+            sfx.click();
             const modal = document.getElementById('merchant-modal');
-            if(modal) {
-                modal.classList.add('opacity-0', 'pointer-events-none');
-                modal.children[0].classList.replace('scale-100', 'scale-95');
-            }
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.replace('scale-100', 'scale-95');
         }
 
         function fulfillOrder() {
-            if (!isMerchantHere || !currentOrder) return;
-            
-            let playerHas = inventory[currentOrder.crop] || 0;
-            
-            if (playerHas > 0) {
-                if(typeof sfx !== 'undefined') sfx.buy();
-                
-                let amountToSell = Math.min(playerHas, currentOrder.amount);
-                let payout = amountToSell * currentOrder.pricePerUnit;
-                
-                inventory[currentOrder.crop] -= amountToSell;
-                inventory.money += payout;
+            let playerHas = inventory[currentOrder.crop];
+            let sellAmount = Math.min(playerHas, currentOrder.amount);
+            let earnAmount = sellAmount * currentOrder.pricePerUnit;
+
+            if (sellAmount > 0) {
+                sfx.buy();
+                inventory[currentOrder.crop] -= sellAmount;
+                inventory.money += earnAmount;
                 
                 isMerchantHere = false;
                 merchantTimer = 120; 
-                currentOrder = null;
                 
                 updateUI();
-                updateMerchantUI();
                 closeMerchantModal();
+                updateMerchantUI();
                 
-                showMessage('ขายออเดอร์สำเร็จ!', `พ่อค้ารับสินค้าเท่าที่มีจำนวน <span class="text-yellow-400 font-bold">${amountToSell.toLocaleString()}</span> หน่วย<br>และจ่ายเงินให้คุณรวม <span class="text-green-400 font-bold">${payout.toLocaleString()} ฿</span> เรียบร้อยแล้ว!`, '💰');
+                showMessage('ส่งมอบออเดอร์สำเร็จ!', `พ่อค้าพอใจมาก! คุณขายไป ${sellAmount.toLocaleString()} หน่วย<br>ได้รับเงิน <span class="text-green-400 font-bold">${earnAmount.toLocaleString()} ฿</span>`, '🎉');
             } else {
-                if(typeof sfx !== 'undefined') sfx.error();
+                sfx.error();
             }
         }
 
@@ -3366,8 +3054,7 @@
             }
         }
 
-
-function animate() {
+        function animate() {
             requestAnimationFrame(animate);
             const delta = Math.min(clock.getDelta(), 0.1);
 
@@ -3384,25 +3071,6 @@ function animate() {
 
                     if (!car.targetPos && !car.nextStep) {
                         findNextTargetForCar(car);
-                        
-                        // ระบบหมดสัญญาจ้างสำหรับคนงานชั่วคราว
-                        if (!car.targetPos && car.assignedPlot !== null && CAR_TYPES[car.type].isTemp) {
-                            if (car.jobType === 'harvest' && getTotalStorage() >= siloCount * SILO_CAPACITY) {
-                                // หยุดรอจนกว่าคลังจะว่าง
-                            } else {
-                                ownedCars[car.type] = Math.max(0, ownedCars[car.type] - 1);
-                                scene.remove(car.group);
-                                car.markedForDeletion = true;
-                                
-                                if (!window.hasShownWorkerExpMsg) {
-                                    showMessage('หมดสัญญาจ้าง!', `คนงานทำงานแปลงที่ ${plotNames[car.assignedPlot]} เสร็จสิ้นและเดินทางกลับแล้ว คุณสามารถจ้างใหม่ได้ที่ร้านค้า`, '👨‍🌾', 4000);
-                                    window.hasShownWorkerExpMsg = true;
-                                    setTimeout(() => window.hasShownWorkerExpMsg = false, 5000);
-                                }
-                                updateUI();
-                                return; 
-                            }
-                        }
                     }
 
                     if (!car.nextStep && car.targetPos) {
@@ -3421,18 +3089,10 @@ function animate() {
                         }
 
                         if (car.nextStep) {
-                            let targetRot = 0;
-                            if (car.nextStep.x > car.logicalPos.x) targetRot = 0;
-                            else if (car.nextStep.x < car.logicalPos.x) targetRot = Math.PI;
-                            else if (car.nextStep.z > car.logicalPos.z) targetRot = -Math.PI / 2;
-                            else if (car.nextStep.z < car.logicalPos.z) targetRot = Math.PI / 2;
-                            
-                            // ชดเชยองศาให้คนงานหันหน้าไปในทิศทางที่เดิน (หมุนเพิ่ม 90 องศา)
-                            if (car.type === 'worker_1') {
-                                targetRot += Math.PI / 2;
-                            }
-                            
-                            car.group.rotation.y = targetRot;
+                            if (car.nextStep.x > car.logicalPos.x) car.group.rotation.y = 0;
+                            else if (car.nextStep.x < car.logicalPos.x) car.group.rotation.y = Math.PI;
+                            else if (car.nextStep.z > car.logicalPos.z) car.group.rotation.y = -Math.PI / 2;
+                            else if (car.nextStep.z < car.logicalPos.z) car.group.rotation.y = Math.PI / 2;
                         }
                     }
 
@@ -3461,47 +3121,28 @@ function animate() {
                         
                         car.group.children.forEach(child => {
                             const time = Date.now() * 0.015 * car.speed;
+                            if (child.name === "scissorL") child.rotation.y = -Math.PI / 6 + Math.sin(time) * 0.3;
+                            if (child.name === "scissorR") child.rotation.y = Math.PI / 6 - Math.sin(time) * 0.3;
                             
-                            if (car.type === 'worker_1') {
-                                if (child.name === "leg_L1" || child.name === "arm_R") {
-                                    child.rotation.x = Math.sin(time) * 0.8;
-                                }
-                                if (child.name === "leg_R1" || child.name === "arm_L") {
-                                    child.rotation.x = Math.sin(time + Math.PI) * 0.8;
-                                }
-                            } else {
-                                if (child.name === "scissorL") child.rotation.y = -Math.PI / 6 + Math.sin(time) * 0.3;
-                                if (child.name === "scissorR") child.rotation.y = Math.PI / 6 - Math.sin(time) * 0.3;
-                                
-                                if (child.name && child.name.startsWith("leg_R")) {
-                                    let offset = child.name === "leg_R2" ? Math.PI : 0;
-                                    child.rotation.z = Math.sin(time + offset) * 0.5;
-                                }
-                                if (child.name && child.name.startsWith("leg_L")) {
-                                    let offset = child.name === "leg_L2" ? Math.PI : 0;
-                                    child.rotation.z = Math.sin(time + offset) * 0.5;
-                                }
+                            if (child.name && child.name.startsWith("leg_R")) {
+                                let offset = child.name === "leg_R2" ? Math.PI : 0;
+                                child.rotation.z = Math.sin(time + offset) * 0.5;
+                            }
+                            if (child.name && child.name.startsWith("leg_L")) {
+                                let offset = child.name === "leg_L2" ? Math.PI : 0;
+                                child.rotation.z = Math.sin(time + offset) * 0.5;
                             }
                         });
                     }
 
                     if (!car.nextStep) {
                         car.group.children.forEach(child => {
-                            if (car.type === 'worker_1') {
-                                 if (child.name && (child.name.startsWith("leg") || child.name.startsWith("arm"))) {
-                                     child.rotation.x = THREE.MathUtils.lerp(child.rotation.x, 0, 0.1);
-                                 }
-                            } else {
-                                if (child.name === "scissorL") child.rotation.y = THREE.MathUtils.lerp(child.rotation.y, -Math.PI / 6, 0.1);
-                                if (child.name === "scissorR") child.rotation.y = THREE.MathUtils.lerp(child.rotation.y, Math.PI / 6, 0.1);
-                                if (child.name && child.name.startsWith("leg_")) child.rotation.z = THREE.MathUtils.lerp(child.rotation.z, 0, 0.1);
-                            }
+                            if (child.name === "scissorL") child.rotation.y = THREE.MathUtils.lerp(child.rotation.y, -Math.PI / 6, 0.1);
+                            if (child.name === "scissorR") child.rotation.y = THREE.MathUtils.lerp(child.rotation.y, Math.PI / 6, 0.1);
+                            if (child.name && child.name.startsWith("leg_")) child.rotation.z = THREE.MathUtils.lerp(child.rotation.z, 0, 0.1);
                         });
                     }
                 });
-
-                // กำจัดแรงงาน/หุ่นที่ถูกทำเครื่องหมายลบออกจาก array
-                activeCars = activeCars.filter(c => !c.markedForDeletion);
 
                 if (hasDog && dogGroup) {
                     if (!dogData.targetPos) {
@@ -3638,6 +3279,7 @@ function animate() {
                     for(let x=0; x<COLS; x++){
                         let label = labelGrid[z][x];
                         
+                        // ปรับปรุง: ซ่อน/แสดงเปอร์เซ็นต์ตามการตั้งค่า
                         if(isShowCropPercentage && boardLogical[z][x] !== 'empty' && growthLogical[z][x] < 100) {
                             if(!label) {
                                 label = document.createElement('div');
@@ -3682,14 +3324,6 @@ function animate() {
                 }
             }
         }
-
-
-
-
-
-
-
-
 
         function updateUI() {
             const hudNameEl = document.getElementById('hud-player-name');
